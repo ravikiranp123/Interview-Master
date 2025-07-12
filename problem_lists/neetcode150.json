@@ -1,0 +1,621 @@
+{
+    "name": "NeetCode 150",
+    "categories": {
+        "Arrays & Hashing": [
+            {
+                "id": 217,
+                "title": "Contains Duplicate"
+            },
+            {
+                "id": 242,
+                "title": "Valid Anagram"
+            },
+            {
+                "id": 1,
+                "title": "Two Sum"
+            },
+            {
+                "id": 49,
+                "title": "Group Anagrams"
+            },
+            {
+                "id": 347,
+                "title": "Top K Frequent Elements"
+            },
+            {
+                "id": 238,
+                "title": "Product of Array Except Self"
+            },
+            {
+                "id": 36,
+                "title": "Valid Sudoku"
+            },
+            {
+                "id": 128,
+                "title": "Longest Consecutive Sequence"
+            }
+        ],
+        "Two Pointers": [
+            {
+                "id": 125,
+                "title": "Valid Palindrome"
+            },
+            {
+                "id": 167,
+                "title": "Two Sum II - Input Array Is Sorted"
+            },
+            {
+                "id": 15,
+                "title": "3Sum"
+            },
+            {
+                "id": 11,
+                "title": "Container With Most Water"
+            },
+            {
+                "id": 42,
+                "title": "Trapping Rain Water"
+            }
+        ],
+        "Sliding Window": [
+            {
+                "id": 121,
+                "title": "Best Time to Buy and Sell Stock"
+            },
+            {
+                "id": 3,
+                "title": "Longest Substring Without Repeating Characters"
+            },
+            {
+                "id": 424,
+                "title": "Longest Repeating Character Replacement"
+            },
+            {
+                "id": 76,
+                "title": "Minimum Window Substring"
+            },
+            {
+                "id": 567,
+                "title": "Permutation in String"
+            },
+            {
+                "id": 239,
+                "title": "Sliding Window Maximum"
+            }
+        ],
+        "Stack": [
+            {
+                "id": 20,
+                "title": "Valid Parentheses"
+            },
+            {
+                "id": 155,
+                "title": "Min Stack"
+            },
+            {
+                "id": 150,
+                "title": "Evaluate Reverse Polish Notation"
+            },
+            {
+                "id": 22,
+                "title": "Generate Parentheses"
+            },
+            {
+                "id": 739,
+                "title": "Daily Temperatures"
+            },
+            {
+                "id": 853,
+                "title": "Car Fleet"
+            },
+            {
+                "id": 84,
+                "title": "Largest Rectangle in Histogram"
+            }
+        ],
+        "Binary Search": [
+            {
+                "id": 704,
+                "title": "Binary Search"
+            },
+            {
+                "id": 74,
+                "title": "Search a 2D Matrix"
+            },
+            {
+                "id": 875,
+                "title": "Koko Eating Bananas"
+            },
+            {
+                "id": 153,
+                "title": "Find Minimum in Rotated Sorted Array"
+            },
+            {
+                "id": 33,
+                "title": "Search in Rotated Sorted Array"
+            },
+            {
+                "id": 4,
+                "title": "Median of Two Sorted Arrays"
+            }
+        ],
+        "Linked List": [
+            {
+                "id": 206,
+                "title": "Reverse Linked List"
+            },
+            {
+                "id": 21,
+                "title": "Merge Two Sorted Lists"
+            },
+            {
+                "id": 143,
+                "title": "Reorder List"
+            },
+            {
+                "id": 19,
+                "title": "Remove Nth Node From End of List"
+            },
+            {
+                "id": 141,
+                "title": "Linked List Cycle"
+            },
+            {
+                "id": 2,
+                "title": "Add Two Numbers"
+            },
+            {
+                "id": 287,
+                "title": "Find the Duplicate Number"
+            },
+            {
+                "id": 138,
+                "title": "Copy List with Random Pointer"
+            },
+            {
+                "id": 25,
+                "title": "Reverse Nodes in k-Group"
+            },
+            {
+                "id": 146,
+                "title": "LRU Cache"
+            }
+        ],
+        "Trees": [
+            {
+                "id": 226,
+                "title": "Invert Binary Tree"
+            },
+            {
+                "id": 104,
+                "title": "Maximum Depth of Binary Tree"
+            },
+            {
+                "id": 543,
+                "title": "Diameter of Binary Tree"
+            },
+            {
+                "id": 110,
+                "title": "Balanced Binary Tree"
+            },
+            {
+                "id": 100,
+                "title": "Same Tree"
+            },
+            {
+                "id": 572,
+                "title": "Subtree of Another Tree"
+            },
+            {
+                "id": 235,
+                "title": "Lowest Common Ancestor of a Binary Search Tree"
+            },
+            {
+                "id": 102,
+                "title": "Binary Tree Level Order Traversal"
+            },
+            {
+                "id": 199,
+                "title": "Binary Tree Right Side View"
+            },
+            {
+                "id": 98,
+                "title": "Validate Binary Search Tree"
+            },
+            {
+                "id": 230,
+                "title": "Kth Smallest Element in a BST"
+            },
+            {
+                "id": 105,
+                "title": "Construct Binary Tree from Preorder and Inorder Traversal"
+            },
+            {
+                "id": 124,
+                "title": "Binary Tree Maximum Path Sum"
+            },
+            {
+                "id": 297,
+                "title": "Serialize and Deserialize Binary Tree"
+            }
+        ],
+        "Tries": [
+            {
+                "id": 208,
+                "title": "Implement Trie (Prefix Tree)"
+            },
+            {
+                "id": 211,
+                "title": "Design Add and Search Words Data Structure"
+            },
+            {
+                "id": 212,
+                "title": "Word Search II"
+            }
+        ],
+        "Heap / Priority Queue": [
+            {
+                "id": 703,
+                "title": "Kth Largest Element in a Stream"
+            },
+            {
+                "id": 1046,
+                "title": "Last Stone Weight"
+            },
+            {
+                "id": 215,
+                "title": "Kth Largest Element in an Array"
+            },
+            {
+                "id": 973,
+                "title": "K Closest Points to Origin"
+            },
+            {
+                "id": 621,
+                "title": "Task Scheduler"
+            },
+            {
+                "id": 355,
+                "title": "Design Twitter"
+            },
+            {
+                "id": 295,
+                "title": "Find Median from Data Stream"
+            }
+        ],
+        "Backtracking": [
+            {
+                "id": 78,
+                "title": "Subsets"
+            },
+            {
+                "id": 39,
+                "title": "Combination Sum"
+            },
+            {
+                "id": 46,
+                "title": "Permutations"
+            },
+            {
+                "id": 90,
+                "title": "Subsets II"
+            },
+            {
+                "id": 40,
+                "title": "Combination Sum II"
+            },
+            {
+                "id": 79,
+                "title": "Word Search"
+            },
+            {
+                "id": 131,
+                "title": "Palindrome Partitioning"
+            },
+            {
+                "id": 51,
+                "title": "N-Queens"
+            }
+        ],
+        "Graphs": [
+            {
+                "id": 200,
+                "title": "Number of Islands"
+            },
+            {
+                "id": 133,
+                "title": "Clone Graph"
+            },
+            {
+                "id": 695,
+                "title": "Max Area of Island"
+            },
+            {
+                "id": 417,
+                "title": "Pacific Atlantic Water Flow"
+            },
+            {
+                "id": 207,
+                "title": "Course Schedule"
+            },
+            {
+                "id": 210,
+                "title": "Course Schedule II"
+            },
+            {
+                "id": 684,
+                "title": "Redundant Connection"
+            },
+            {
+                "id": 127,
+                "title": "Word Ladder"
+            },
+            {
+                "id": 323,
+                "title": "Number of Connected Components in an Undirected Graph"
+            },
+            {
+                "id": 261,
+                "title": "Graph Valid Tree"
+            },
+            {
+                "id": 332,
+                "title": "Reconstruct Itinerary"
+            }
+        ],
+        "Advanced Graphs": [
+            {
+                "id": 1584,
+                "title": "Min Cost to Connect All Points"
+            },
+            {
+                "id": 778,
+                "title": "Swim in Rising Water"
+            },
+            {
+                "id": 743,
+                "title": "Network Delay Time"
+            },
+            {
+                "id": 787,
+                "title": "Cheapest Flights Within K Stops"
+            },
+            {
+                "id": 1976,
+                "title": "Number of Ways to Arrive at Destination"
+            }
+        ],
+        "1-D Dynamic Programming": [
+            {
+                "id": 70,
+                "title": "Climbing Stairs"
+            },
+            {
+                "id": 198,
+                "title": "House Robber"
+            },
+            {
+                "id": 213,
+                "title": "House Robber II"
+            },
+            {
+                "id": 322,
+                "title": "Coin Change"
+            },
+            {
+                "id": 300,
+                "title": "Longest Increasing Subsequence"
+            },
+            {
+                "id": 139,
+                "title": "Word Break"
+            },
+            {
+                "id": 416,
+                "title": "Partition Equal Subset Sum"
+            },
+            {
+                "id": 5,
+                "title": "Longest Palindromic Substring"
+            },
+            {
+                "id": 647,
+                "title": "Palindromic Substrings"
+            },
+            {
+                "id": 91,
+                "title": "Decode Ways"
+            }
+        ],
+        "2-D Dynamic Programming": [
+            {
+                "id": 62,
+                "title": "Unique Paths"
+            },
+            {
+                "id": 1143,
+                "title": "Longest Common Subsequence"
+            },
+            {
+                "id": 72,
+                "title": "Edit Distance"
+            },
+            {
+                "id": 309,
+                "title": "Best Time to Buy and Sell Stock with Cooldown"
+            },
+            {
+                "id": 518,
+                "title": "Coin Change 2"
+            },
+            {
+                "id": 494,
+                "title": "Target Sum"
+            },
+            {
+                "id": 10,
+                "title": "Regular Expression Matching"
+            },
+            {
+                "id": 44,
+                "title": "Wildcard Matching"
+            },
+            {
+                "id": 887,
+                "title": "Super Egg Drop"
+            },
+            {
+                "id": 132,
+                "title": "Palindrome Partitioning II"
+            },
+            {
+                "id": 123,
+                "title": "Best Time to Buy and Sell Stock III"
+            },
+            {
+                "id": 188,
+                "title": "Best Time to Buy and Sell Stock IV"
+            },
+            {
+                "id": 688,
+                "title": "Knight Probability in Chessboard"
+            },
+            {
+                "id": 879,
+                "title": "Profitable Schemes"
+            },
+            {
+                "id": 329,
+                "title": "Longest Increasing Path in a Matrix"
+            }
+        ],
+        "Greedy": [
+            {
+                "id": 55,
+                "title": "Jump Game"
+            },
+            {
+                "id": 45,
+                "title": "Jump Game II"
+            },
+            {
+                "id": 53,
+                "title": "Maximum Subarray"
+            },
+            {
+                "id": 871,
+                "title": "Minimum Number of Refueling Stops"
+            },
+            {
+                "id": 134,
+                "title": "Gas Station"
+            },
+            {
+                "id": 57,
+                "title": "Insert Interval"
+            },
+            {
+                "id": 56,
+                "title": "Merge Intervals"
+            },
+            {
+                "id": 435,
+                "title": "Non-overlapping Intervals"
+            },
+            {
+                "id": 763,
+                "title": "Partition Labels"
+            },
+            {
+                "id": 678,
+                "title": "Valid Parenthesis String"
+            }
+        ],
+        "Intervals": [
+            {
+                "id": 57,
+                "title": "Insert Interval"
+            },
+            {
+                "id": 56,
+                "title": "Merge Intervals"
+            },
+            {
+                "id": 435,
+                "title": "Non-overlapping Intervals"
+            },
+            {
+                "id": 252,
+                "title": "Meeting Rooms"
+            },
+            {
+                "id": 253,
+                "title": "Meeting Rooms II"
+            }
+        ],
+        "Math & Geometry": [
+            {
+                "id": 202,
+                "title": "Happy Number"
+            },
+            {
+                "id": 69,
+                "title": "Sqrt(x)"
+            },
+            {
+                "id": 50,
+                "title": "Pow(x, n)"
+            },
+            {
+                "id": 66,
+                "title": "Plus One"
+            },
+            {
+                "id": 43,
+                "title": "Multiply Strings"
+            },
+            {
+                "id": 73,
+                "title": "Set Matrix Zeroes"
+            },
+            {
+                "id": 54,
+                "title": "Spiral Matrix"
+            },
+            {
+                "id": 48,
+                "title": "Rotate Image"
+            },
+            {
+                "id": 2013,
+                "title": "Detect Squares"
+            }
+        ],
+        "Bit Manipulation": [
+            {
+                "id": 268,
+                "title": "Missing Number"
+            },
+            {
+                "id": 191,
+                "title": "Number of 1 Bits"
+            },
+            {
+                "id": 338,
+                "title": "Counting Bits"
+            },
+            {
+                "id": 371,
+                "title": "Sum of Two Integers"
+            },
+            {
+                "id": 190,
+                "title": "Reverse Bits"
+            },
+            {
+                "id": 7,
+                "title": "Reverse Integer"
+            }
+        ]
+    }
+}
