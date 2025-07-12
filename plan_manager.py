@@ -11,12 +11,12 @@ import re
 # --- Directory and File Paths ---
 # The script assumes it's in the root of the LeetCode_Journey folder.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROBLEM_LISTS_DIR = os.path.join(BASE_DIR, 'problem_lists')
-DAILY_PLANS_DIR = os.path.join(BASE_DIR, 'daily_plans')
-WORKSPACE_DIR = os.path.join(BASE_DIR, 'workspace')
-ARCHIVE_DIR = os.path.join(BASE_DIR, 'archive')
-STATE_FILE = os.path.join(BASE_DIR, 'state.json')
-DASHBOARD_FILE = os.path.join(BASE_DIR, 'dashboard.md')
+PROBLEM_LISTS_DIR = os.path.join(BASE_DIR, "problem_lists")
+DAILY_PLANS_DIR = os.path.join(BASE_DIR, "daily_plans")
+WORKSPACE_DIR = os.path.join(BASE_DIR, "workspace")
+ARCHIVE_DIR = os.path.join(BASE_DIR, "archive")
+STATE_FILE = os.path.join(BASE_DIR, "state.json")
+DASHBOARD_FILE = os.path.join(BASE_DIR, "dashboard.md")
 
 # --- Spaced Repetition Schedule ---
 # Intervals in days for repeated practice.
@@ -24,21 +24,25 @@ REPETITION_INTERVALS = [1, 7, 16, 35, 90]
 
 # --- HELPER FUNCTIONS ---
 
+
 def get_today_str():
     """Returns today's date as a 'YYYY-MM-DD' string."""
-    return datetime.now().strftime('%Y-%m-%d')
+    return datetime.now().strftime("%Y-%m-%d")
+
 
 def load_state():
     """Loads the state from state.json, returns None if it doesn't exist."""
     if not os.path.exists(STATE_FILE):
         return None
-    with open(STATE_FILE, 'r', encoding='utf-8') as f:
+    with open(STATE_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def save_state(state):
     """Saves the given state object to state.json."""
-    with open(STATE_FILE, 'w', encoding='utf-8') as f:
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
+
 
 def ensure_dirs():
     """Ensures all necessary directories exist."""
@@ -47,7 +51,9 @@ def ensure_dirs():
     os.makedirs(WORKSPACE_DIR, exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
+
 # --- CORE LOGIC FUNCTIONS ---
+
 
 def generate_dashboard():
     """Generates the dashboard.md file from the current state."""
@@ -55,111 +61,166 @@ def generate_dashboard():
     if not state:
         return
 
-    plan_name = state.get('plan_name', 'Unknown Plan')
-    
+    plan_name = state.get("plan_name", "Unknown Plan")
+
     # Create a dictionary for quick lookups of problem state by ID
-    state_problems_map = {p['id']: p for p in state.get('problems', [])}
-    
+    state_problems_map = {p["id"]: p for p in state.get("problems", [])}
+
     # Load the canonical problem list to get the correct order
-    plan_file_path = os.path.join(PROBLEM_LISTS_DIR, f"{plan_name.replace(' ', '')}.json")
+    plan_file_path = os.path.join(
+        PROBLEM_LISTS_DIR, f"{plan_name.replace(' ', '')}.json"
+    )
     try:
-        with open(plan_file_path, 'r', encoding='utf-8') as f:
+        with open(plan_file_path, "r", encoding="utf-8") as f:
             problem_data = json.load(f)
     except FileNotFoundError:
-        click.echo(click.style(f"Dashboard generation skipped: Could not find '{plan_file_path}'", fg="yellow"))
+        click.echo(
+            click.style(
+                f"Dashboard generation skipped: Could not find '{plan_file_path}'",
+                fg="yellow",
+            )
+        )
         return
 
     total_problems = len(state_problems_map)
-    completed_problems = sum(1 for p in state_problems_map.values() if p['status'] == 'completed')
-    progress_percent = (completed_problems / total_problems * 100) if total_problems > 0 else 0
+    completed_problems = sum(
+        1 for p in state_problems_map.values() if p["status"] == "completed"
+    )
+    progress_percent = (
+        (completed_problems / total_problems * 100) if total_problems > 0 else 0
+    )
 
     content = [f"# LeetCode Journey: {plan_name} Dashboard\n"]
-    content.append(f"**Overall Progress: {completed_problems} / {total_problems} ({progress_percent:.1f}%)**\n")
+    content.append(
+        f"**Overall Progress: {completed_problems} / {total_problems} ({progress_percent:.1f}%)**\n"
+    )
     content.append("---\n")
 
     # Iterate through the canonical list to preserve order
-    for category, problems_in_list in problem_data['categories'].items():
-        
+    for category, problems_in_list in problem_data["categories"].items():
+
         # Calculate category-specific progress
-        cat_problem_ids = {p['id'] for p in problems_in_list}
-        completed_in_cat = sum(1 for pid in cat_problem_ids if state_problems_map.get(pid, {}).get('status') == 'completed')
+        cat_problem_ids = {p["id"] for p in problems_in_list}
+        completed_in_cat = sum(
+            1
+            for pid in cat_problem_ids
+            if state_problems_map.get(pid, {}).get("status") == "completed"
+        )
         total_in_cat = len(cat_problem_ids)
         content.append(f"### {category} ({completed_in_cat} / {total_in_cat})\n")
-        
+
         # Iterate through problems in the exact order they appear in the JSON file
         for problem_template in problems_in_list:
-            p_id = problem_template['id']
+            p_id = problem_template["id"]
             # Get the current state for this problem from our map
             p_state = state_problems_map.get(p_id)
-            
-            if not p_state: continue # Should not happen in a valid state file
 
-            checkbox = '[x]' if p_state['status'] == 'completed' else '[ ]'
+            if not p_state:
+                continue  # Should not happen in a valid state file
+
+            checkbox = "[x]" if p_state["status"] == "completed" else "[ ]"
             content.append(f"- {checkbox} {p_state['id']}\\. {p_state['title']}")
-            
+
             # Display full history for completed problems
-            if p_state['status'] == 'completed' and p_state['completion_history']:
-                for i, entry in enumerate(p_state['completion_history']):
-                    date = entry.get('date', 'N/A')
-                    notes = entry.get('notes', 'No note recorded.')
-                    time = f", {entry.get('time_taken', 'N/A')}" if entry.get('time_taken') else ""
+            if p_state["status"] == "completed" and p_state["completion_history"]:
+                for i, entry in enumerate(p_state["completion_history"]):
+                    date = entry.get("date", "N/A")
+                    notes = entry.get("notes", "No note recorded.")
+                    time = (
+                        f", {entry.get('time_taken', 'N/A')}"
+                        if entry.get("time_taken")
+                        else ""
+                    )
                     content.append(f"  - **Attempt {i+1} ({date}{time}):** {notes}")
 
         content.append("\n---\n")
 
-    with open(DASHBOARD_FILE, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(content))
+    with open(DASHBOARD_FILE, "w", encoding="utf-8") as f:
+        f.write("\n".join(content))
     click.echo(click.style("Dashboard updated successfully!", fg="green"))
 
+
 # --- CLI COMMANDS ---
+
 
 @click.group()
 def cli():
     """A command-line tool to manage your LeetCode study plan."""
     ensure_dirs()
 
+
 @cli.command()
 def init():
     """Initializes a new study plan interactively."""
     if os.path.exists(STATE_FILE):
         click.confirm(
-            click.style("A 'state.json' file already exists. Continuing will overwrite it. Are you sure?", fg="yellow"),
-            abort=True
+            click.style(
+                "A 'state.json' file already exists. Continuing will overwrite it. Are you sure?",
+                fg="yellow",
+            ),
+            abort=True,
         )
 
     # Choose problem list
-    available_lists = sorted([f.replace('.json', '') for f in os.listdir(PROBLEM_LISTS_DIR) if f.endswith('.json')])
+    available_lists = sorted(
+        [
+            f.replace(".json", "")
+            for f in os.listdir(PROBLEM_LISTS_DIR)
+            if f.endswith(".json")
+        ]
+    )
     if not available_lists:
-        click.echo(click.style(f"No problem lists found in '{PROBLEM_LISTS_DIR}'. Please add JSON files for plans.", fg="red"))
+        click.echo(
+            click.style(
+                f"No problem lists found in '{PROBLEM_LISTS_DIR}'. Please add JSON files for plans.",
+                fg="red",
+            )
+        )
         return
-
     click.echo("Please choose a plan from the list below:")
     for i, name in enumerate(available_lists, 1):
         click.echo(f"  {i}. {name}")
-    
     choice = click.prompt("\nEnter the number of your chosen plan", type=int)
-
     if not 1 <= choice <= len(available_lists):
-        click.echo(click.style("Invalid selection. Please run the command again.", fg="red"))
+        click.echo(
+            click.style("Invalid selection. Please run the command again.", fg="red")
+        )
         return
-    
     plan_name = available_lists[choice - 1]
     click.echo(f"You have selected: {click.style(plan_name, fg='cyan')}")
 
     # Get start date
-    start_date_str = click.prompt("\nEnter start date (YYYY-MM-DD, leave blank for today)", default=get_today_str(), show_default=False)
+    start_date_str = click.prompt(
+        "\nEnter start date (YYYY-MM-DD, leave blank for today)",
+        default=get_today_str(),
+        show_default=False,
+    )
     try:
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
     except ValueError:
         click.echo(click.style("Invalid date format. Please use YYYY-MM-DD.", fg="red"))
         return
+    problems_per_day = click.prompt(
+        "How many new problems per day?", type=int, default=3, show_default=True
+    )
 
-    # Get problems per day
-    problems_per_day = click.prompt("How many new problems per day?", type=int, default=3)
+    click.echo("\nPlease select a content richness level:")
+    click.echo("  1. Full Rich: Embedded videos and all spoilers.")
+    click.echo(
+        "  2. Spoilers Only: Video links open in browser, other spoilers included."
+    )
+    click.echo("  3. Minimal: No spoilers or resource links, just the problem.")
+    richness_choice = click.prompt(
+        "Enter your choice", type=int, default=1, show_default=True
+    )
 
-    # Load and schedule problems
+    level_map = {1: "full", 2: "spoilers_only", 3: "minimal"}
+    rich_content_level = level_map[richness_choice]
+
     try:
-        with open(os.path.join(PROBLEM_LISTS_DIR, f"{plan_name}.json"), 'r', encoding='utf-8') as f:
+        with open(
+            os.path.join(PROBLEM_LISTS_DIR, f"{plan_name}.json"), "r", encoding="utf-8"
+        ) as f:
             problem_data = json.load(f)
     except FileNotFoundError:
         click.echo(click.style(f"Error: Could not find {plan_name}.json.", fg="red"))
@@ -169,159 +230,307 @@ def init():
     current_date = start_date
     day_counter = 0
 
-    # Iterate through categories in the order they appear in the JSON file
-    for category, problems in problem_data['categories'].items():
+    for category, problems in problem_data["categories"].items():
         for problem in problems:
             if day_counter >= problems_per_day:
                 current_date += timedelta(days=1)
                 day_counter = 0
-            
-            all_problems.append({
-                "id": problem['id'],
-                "title": problem['title'],
-                "category": category,
-                "status": "pending",
-                "scheduled_date": current_date.strftime('%Y-%m-%d'),
-                "next_repetition_date": None,
-                "repetition_level": 0,
-                "completion_history": []
-            })
+
+            problem_state = problem.copy()
+            problem_state.update(
+                {
+                    "category": category,
+                    "status": "pending",
+                    "scheduled_date": current_date.strftime("%Y-%m-%d"),
+                    "next_repetition_date": None,
+                    "repetition_level": 0,
+                    "completion_history": [],
+                }
+            )
+            all_problems.append(problem_state)
             day_counter += 1
-            
-    state = {"plan_name": problem_data['name'], "problems": all_problems}
+
+    state = {
+        "plan_name": problem_data["name"],
+        "problems": all_problems,
+        "rich_content_level": rich_content_level,
+    }
     save_state(state)
     generate_dashboard()
-    click.echo(click.style(f"\nSuccessfully initialized '{plan_name}' plan!", fg="green"))
+    click.echo(
+        click.style(
+            f"\nSuccessfully initialized '{plan_name}' plan with '{rich_content_level}' content level!",
+            fg="green",
+        )
+    )
     click.echo("Run 'python plan_manager.py plan' to generate your first daily plan.")
+
 
 @cli.command()
 def plan():
-    """Generates or refreshes today's study plan."""
+    """Generates the daily plan according to the user's chosen richness level."""
     state = load_state()
     if not state:
         click.echo(click.style("No plan initialized. Run 'init' first.", fg="red"))
         return
 
+    rich_content_level = state.get("rich_content_level", "full")
     today = get_today_str()
     plan_file_path = os.path.join(DAILY_PLANS_DIR, f"{today}.md")
 
-    # Clean the workspace for a fresh start
-    for f in os.listdir(WORKSPACE_DIR):
-        os.remove(os.path.join(WORKSPACE_DIR, f))
+    for f in glob.glob(os.path.join(WORKSPACE_DIR, "*")):
+        os.remove(f)
     click.echo(f"Cleaned workspace: '{WORKSPACE_DIR}'")
 
-    # Find tasks for today
-    new_tasks = [p for p in state['problems'] if p['status'] == 'pending' and p['scheduled_date'] <= today]
-    repetitions = [p for p in state['problems'] if p['status'] == 'completed' and p['next_repetition_date'] == today]
-    
-    # Generate plan content
+    rollover_tasks = [
+        p
+        for p in state["problems"]
+        if p["status"] == "pending" and p["scheduled_date"] < today
+    ]
+    new_tasks = [
+        p
+        for p in state["problems"]
+        if p["status"] == "pending" and p["scheduled_date"] == today
+    ]
+    repetitions = [
+        p
+        for p in state["problems"]
+        if p["status"] == "completed" and p["next_repetition_date"] == today
+    ]
+
     content = [f"# LeetCode Plan for: {today}\n"]
-    
-    if new_tasks:
+
+    def generate_problem_markdown(task, level):
+        """Helper that generates markdown based on the richness level."""
+        lines = []
+        lines.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
+        lines.append("    *   **Rating (1-4)**: ")
+        lines.append("    *   **Notes**: ")
+
+        # If the level is minimal, we are done here.
+        if level == "minimal":
+            return "\n".join(lines)
+
+        resource_blocks = []
+
+        # Solution Link (present in both 'full' and 'spoilers_only')
+        if task.get("solution_link"):
+            link = task["solution_link"]
+            resource_blocks.append(
+                f"        *   [{link.get('text', 'Solution Link')}]({link.get('url', '#')})"
+            )
+
+        # YouTube Link (behavior depends on the level)
+        if task.get("youtube_id"):
+            yt_id = task["youtube_id"]
+            video_url = f"https://www.youtube.com/watch?v={yt_id}"
+            if level == "full":  # Level 1: Full Rich Embed
+                video_block = f'        *   **Video Walkthrough:**\n            <iframe src="https://www.youtube.com/embed/{yt_id}" width="560" height="315" frameborder="0" allowfullscreen></iframe>'
+                resource_blocks.append(video_block)
+            elif level == "spoilers_only":  # Level 2: Simple Link
+                resource_blocks.append(f"        *   [Video Walkthrough]({video_url})")
+
+        # Hints and Solutions (present in both 'full' and 'spoilers_only')
+        if task.get("hints"):
+            hint_lines = ["        *   **Hints:**"]
+            for i, hint_text in enumerate(task["hints"], 1):
+                hint_lines.append(
+                    f"            - <details><summary>Hint {i}</summary>{hint_text}</details>"
+                )
+            resource_blocks.append("\n".join(hint_lines))
+
+        if task.get("solution"):
+            sol = task["solution"]
+            sol_block = [
+                "        *   <details><summary>Full Solution (Spoilers)</summary>"
+            ]
+            if sol.get("explanation"):
+                sol_block.append(
+                    f"            **Explanation:**\n            {sol['explanation']}\n"
+                )
+            if sol.get("code"):
+                for lang, code in sol["code"].items():
+                    indented_code = "\n".join(
+                        ["            " + line for line in code.split("\n")]
+                    )
+                    sol_block.append(
+                        f"            **{lang.capitalize()} Code:**\n            ```{lang}\n{indented_code}\n            ```"
+                    )
+            sol_block.append("            </details>")
+            resource_blocks.append("\n".join(sol_block))
+
+        if resource_blocks:
+            lines.append("    *   **Resources**:")
+            lines.extend(resource_blocks)
+        return "\n".join(lines)
+
+    if rollover_tasks or new_tasks:
         content.append("---\n\n## 🚀 New Problems To Solve\n")
-        for task in sorted(new_tasks, key=lambda x: x['scheduled_date']):
-            content.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
-            content.append(f"    *   **Notes**: ")
-            content.append(f"    *   **Time Taken**: ")
+        if rollover_tasks:
+            content.append("**Rollover from previous days:**")
+            for task in sorted(rollover_tasks, key=lambda x: x["scheduled_date"]):
+                content.append(generate_problem_markdown(task, rich_content_level))
+        if new_tasks:
+            for task in new_tasks:
+                content.append(generate_problem_markdown(task, rich_content_level))
     else:
-        content.append("---\n\n## 🚀 New Problems To Solve\n\n*No new problems scheduled for today. Great job!*")
+        content.append(
+            "---\n\n## 🚀 New Problems To Solve\n\n*No new problems scheduled for today. Great job!*"
+        )
 
     if repetitions:
         content.append("\n---\n\n## 🔁 Repetitions Due\n")
         for task in repetitions:
-            content.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
-            content.append(f"    *   **Notes**: ")
-            content.append(f"    *   **Time Taken**: ")
+            content.append(generate_problem_markdown(task, rich_content_level))
     else:
-        content.append("\n---\n\n## 🔁 Repetitions Due\n\n*You have no repetitions due today.*")
-        
-    with open(plan_file_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(content))
+        content.append(
+            "---\n\n## 🔁 Repetitions Due\n\n*You have no repetitions due today.*"
+        )
+
+    with open(plan_file_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(content))
 
     click.echo(click.style(f"Today's plan created at: '{plan_file_path}'", fg="green"))
 
+
+def format_duration(seconds):
+    """Formats a duration in seconds into a human-readable string."""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    minutes = seconds / 60
+    if minutes < 60:
+        return f"{int(minutes)}m {int(seconds % 60)}s"
+    hours = minutes / 60
+    return f"{int(hours)}h {int(minutes % 60)}m"
+
+
 @cli.command()
 def sync():
-    """Syncs progress from daily plans back to the main state."""
+    """Syncs progress, including time and rating, and applies adaptive repetition."""
     state = load_state()
     if not state:
         click.echo(click.style("No plan initialized. Run 'init' first.", fg="red"))
         return
 
     synced_files = []
-    
-    for plan_file in glob.glob(os.path.join(DAILY_PLANS_DIR, '*.md')):
-        with open(plan_file, 'r', encoding='utf-8') as f:
+
+    for plan_file in glob.glob(os.path.join(DAILY_PLANS_DIR, "*.md")):
+        with open(plan_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         problems_to_update = {}
-        
-        # Find all list items (checked or unchecked) to define the boundaries of each problem block.
-        # The `re.MULTILINE` flag is crucial for `^` to match the start of each line.
-        problem_starts = list(re.finditer(r'^\*\s*\[[ xX]\]', content, re.MULTILINE))
+        problem_starts = list(re.finditer(r"^\*\s*\[[ xX]\]", content, re.MULTILINE))
 
         for i, start_match in enumerate(problem_starts):
-            # We only care about blocks that are explicitly checked with '[x]' or '[X]'
-            if '[x]' not in start_match.group(0).lower():
+            if "[x]" not in start_match.group(0).lower():
                 continue
 
-            # Define the text block for this specific problem.
-            # It starts at the beginning of the current problem's line...
             start_pos = start_match.start()
-            # ...and ends at the beginning of the *next* problem's line (or the end of the file).
-            end_pos = problem_starts[i+1].start() if i + 1 < len(problem_starts) else len(content)
-            
+            end_pos = (
+                problem_starts[i + 1].start()
+                if i + 1 < len(problem_starts)
+                else len(content)
+            )
             block = content[start_pos:end_pos]
-            
-            # Now, extract details from this isolated and safe block
-            id_match = re.search(r'(\d+)\\?\.', block)
-            notes_match = re.search(r'\*\*Notes\*\*:\s*(.*)', block, re.IGNORECASE)
-            time_match = re.search(r'\*\*Time Taken\*\*:\s*(.*)', block, re.IGNORECASE)
 
-            if id_match and notes_match and time_match:
+            id_match = re.search(r"(\d+)\\?\.", block)
+            rating_match = re.search(
+                r"\*\*Rating \(1-4\)\*\*:\s*(\d)", block, re.IGNORECASE
+            )
+            notes_match = re.search(r"\*\*Notes\*\*:\s*(.*)", block, re.IGNORECASE)
+
+            if id_match:
                 problem_id = int(id_match.group(1))
-                # .strip() is important to remove leading/trailing whitespace
-                notes = notes_match.group(1).strip()
-                time_taken = time_match.group(1).strip()
-                problems_to_update[problem_id] = {"notes": notes, "time_taken": time_taken}
+                rating = int(rating_match.group(1)) if rating_match else 0
+                notes = notes_match.group(1).strip() if notes_match else ""
+
+                # --- Restore Automatic Time Tracking Logic ---
+                time_taken_str = "N/A"
+                solution_files = glob.glob(
+                    os.path.join(WORKSPACE_DIR, f"{problem_id}.*")
+                )
+                if solution_files:
+                    solution_file = solution_files[0]
+                    try:
+                        creation_time = os.path.getctime(solution_file)
+                        modified_time = os.path.getmtime(solution_file)
+                        duration_seconds = modified_time - creation_time
+                        time_taken_str = format_duration(duration_seconds)
+                    except FileNotFoundError:
+                        pass
+                # --- End of Time Tracking Logic ---
+
+                problems_to_update[problem_id] = {
+                    "notes": notes,
+                    "rating": rating,
+                    "time_taken": time_taken_str,
+                }
 
         if problems_to_update:
-            for p in state['problems']:
-                if p['id'] in problems_to_update:
-                    data = problems_to_update[p['id']]
-                    # Sync only if it's a new completion or a due repetition
+            for p in state["problems"]:
+                if p["id"] in problems_to_update:
+                    data = problems_to_update[p["id"]]
                     today_str = get_today_str()
-                    if p['status'] == 'pending' or (p['next_repetition_date'] and p['next_repetition_date'] <= today_str):
-                        p['status'] = 'completed'
-                        p['completion_history'].append({"date": today_str, "notes": data['notes'], "time_taken": data['time_taken']})
-                        
-                        level = p['repetition_level']
-                        if level < len(REPETITION_INTERVALS):
-                            interval = REPETITION_INTERVALS[level]
-                            next_date = datetime.now() + timedelta(days=interval)
-                            p['next_repetition_date'] = next_date.strftime('%Y-%m-%d')
-                            p['repetition_level'] += 1
-                        else: # Mastered
-                            p['next_repetition_date'] = None
-                        click.echo(f"Synced progress for: {p['id']}. {p['title']}")
+                    if p["status"] == "pending" or (
+                        p["next_repetition_date"]
+                        and p["next_repetition_date"] <= today_str
+                    ):
+                        p["status"] = "completed"
+                        p["completion_history"].append(
+                            {
+                                "date": today_str,
+                                "notes": data["notes"],
+                                "rating": data["rating"],
+                                "time_taken": data["time_taken"],
+                            }
+                        )
+
+                        rating = data.get("rating", 2)
+                        current_level = p.get("repetition_level", 0)
+
+                        if rating == 1:
+                            next_interval = 60
+                        elif rating == 2:
+                            next_interval = REPETITION_INTERVALS[
+                                min(current_level, len(REPETITION_INTERVALS) - 1)
+                            ]
+                            p["repetition_level"] = current_level + 1
+                        elif rating == 3:
+                            next_interval = 2
+                        elif rating == 4:
+                            next_interval = 1
+                        else:
+                            next_interval = REPETITION_INTERVALS[
+                                min(current_level, len(REPETITION_INTERVALS) - 1)
+                            ]
+
+                        next_date = datetime.now() + timedelta(days=next_interval)
+                        p["next_repetition_date"] = next_date.strftime("%Y-%m-%d")
+
+                        click.echo(
+                            f"Synced progress for: {p['id']}. {p['title']} (Rating: {rating}, Time: {data['time_taken']})"
+                        )
 
             save_state(state)
-        
+
         synced_files.append(plan_file)
 
     if not synced_files:
-        click.echo("No daily plans found to sync.")
+        click.echo(
+            "No daily plans found to sync. Regenerating dashboard from current state..."
+        )
+        generate_dashboard()
         return
-        
+
     for f in synced_files:
         os.remove(f)
 
-    if synced_files:
-        click.echo(f"Synced and removed {len(synced_files)} daily plan(s).")
-        generate_dashboard()
+    click.echo(f"Synced and removed {len(synced_files)} daily plan(s).")
+    generate_dashboard()
+
 
 @cli.command()
-@click.option('--count', default=3, help='Number of extra problems to add.')
+@click.option("--count", default=3, help="Number of extra problems to add.")
 def add(count):
     """Adds extra new problems to today's plan."""
     state = load_state()
@@ -331,31 +540,40 @@ def add(count):
     if not state or not os.path.exists(plan_file_path):
         click.echo(click.style("No plan for today. Run 'plan' first.", fg="red"))
         return
-    
-    extra_problems = [p for p in state['problems'] if p['status'] == 'pending' and p['scheduled_date'] > today]
-    extra_problems = sorted(extra_problems, key=lambda x: x['scheduled_date'])[:count]
+
+    extra_problems = [
+        p
+        for p in state["problems"]
+        if p["status"] == "pending" and p["scheduled_date"] > today
+    ]
+    extra_problems = sorted(extra_problems, key=lambda x: x["scheduled_date"])[:count]
 
     if not extra_problems:
         click.echo("No more pending problems left to add!")
         return
-    
+
     content = ["\n---\n\n## ✨ Added Problems\n"]
     for task in extra_problems:
         # Pull the problem's schedule date to today
-        for p_state in state['problems']:
-            if p_state['id'] == task['id']:
-                p_state['scheduled_date'] = today
+        for p_state in state["problems"]:
+            if p_state["id"] == task["id"]:
+                p_state["scheduled_date"] = today
                 break
-        
+
         content.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
         content.append(f"    *   **Notes**:")
         content.append(f"    *   **Time Taken**:")
 
-    with open(plan_file_path, 'a', encoding='utf-8') as f:
-        f.write('\n'.join(content))
-    
+    with open(plan_file_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(content))
+
     save_state(state)
-    click.echo(click.style(f"Added {len(extra_problems)} extra problem(s) to today's plan.", fg="green"))
+    click.echo(
+        click.style(
+            f"Added {len(extra_problems)} extra problem(s) to today's plan.", fg="green"
+        )
+    )
+
 
 @cli.command()
 def reset():
@@ -364,26 +582,31 @@ def reset():
         click.echo(click.style("Nothing to reset. Run 'init' to start.", fg="yellow"))
         return
 
-    click.confirm("Are you sure you want to reset? This will archive your current progress.", abort=True)
-    
+    click.confirm(
+        "Are you sure you want to reset? This will archive your current progress.",
+        abort=True,
+    )
+
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    
+
     # Archive essential files
     if os.path.exists(STATE_FILE):
         shutil.move(STATE_FILE, os.path.join(ARCHIVE_DIR, f"{timestamp}_state.json"))
     if os.path.exists(DASHBOARD_FILE):
-        shutil.move(DASHBOARD_FILE, os.path.join(ARCHIVE_DIR, f"{timestamp}_dashboard.md"))
-        
+        shutil.move(
+            DASHBOARD_FILE, os.path.join(ARCHIVE_DIR, f"{timestamp}_dashboard.md")
+        )
+
     # Clear working directories
     for f in os.listdir(DAILY_PLANS_DIR):
         os.remove(os.path.join(DAILY_PLANS_DIR, f))
     for f in os.listdir(WORKSPACE_DIR):
         os.remove(os.path.join(WORKSPACE_DIR, f))
-        
+
     click.echo(click.style("System has been reset.", fg="green"))
     click.echo(f"Your previous state has been archived in '{ARCHIVE_DIR}'.")
     click.echo("Run 'init' to start a new journey.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
