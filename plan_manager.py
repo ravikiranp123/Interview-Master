@@ -52,21 +52,29 @@ def ensure_dirs():
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
 
+def format_duration(seconds):
+    """Formats a duration in seconds into a human-readable string."""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    minutes = seconds / 60
+    if minutes < 60:
+        return f"{int(minutes)}m {int(seconds % 60)}s"
+    hours = minutes / 60
+    return f"{int(hours)}h {int(minutes % 60)}m"
+
+
 # --- CORE LOGIC FUNCTIONS ---
 
 
 def generate_dashboard():
-    """Generates the dashboard.md file from the current state."""
+    """Generates the dashboard.md file, including next repetition dates."""
     state = load_state()
     if not state:
         return
 
     plan_name = state.get("plan_name", "Unknown Plan")
-
-    # Create a dictionary for quick lookups of problem state by ID
     state_problems_map = {p["id"]: p for p in state.get("problems", [])}
 
-    # Load the canonical problem list to get the correct order
     plan_file_path = os.path.join(
         PROBLEM_LISTS_DIR, f"{plan_name.replace(' ', '')}.json"
     )
@@ -96,10 +104,7 @@ def generate_dashboard():
     )
     content.append("---\n")
 
-    # Iterate through the canonical list to preserve order
     for category, problems_in_list in problem_data["categories"].items():
-
-        # Calculate category-specific progress
         cat_problem_ids = {p["id"] for p in problems_in_list}
         completed_in_cat = sum(
             1
@@ -109,30 +114,37 @@ def generate_dashboard():
         total_in_cat = len(cat_problem_ids)
         content.append(f"### {category} ({completed_in_cat} / {total_in_cat})\n")
 
-        # Iterate through problems in the exact order they appear in the JSON file
         for problem_template in problems_in_list:
             p_id = problem_template["id"]
-            # Get the current state for this problem from our map
             p_state = state_problems_map.get(p_id)
-
             if not p_state:
-                continue  # Should not happen in a valid state file
+                continue
 
             checkbox = "[x]" if p_state["status"] == "completed" else "[ ]"
-            content.append(f"- {checkbox} {p_state['id']}\\. {p_state['title']}")
+            repeat_date_str = ""
+            if p_state.get("next_repetition_date"):
+                repeat_date_str = f" (Next Repeat: {p_state['next_repetition_date']})"
+            content.append(
+                f"- {checkbox} {p_state['id']}\\. {p_state['title']}{repeat_date_str}"
+            )
 
-            # Display full history for completed problems
             if p_state["status"] == "completed" and p_state["completion_history"]:
                 for i, entry in enumerate(p_state["completion_history"]):
                     date = entry.get("date", "N/A")
-                    notes = entry.get("notes", "No note recorded.")
+                    notes = entry.get("notes")
+                    if not notes:
+                        notes = "No notes provided."
+                    else:
+                        notes = notes.strip()
                     time = (
-                        f", {entry.get('time_taken', 'N/A')}"
+                        f", Time: {entry.get('time_taken', 'N/A')}"
                         if entry.get("time_taken")
                         else ""
                     )
-                    content.append(f"  - **Attempt {i+1} ({date}{time}):** {notes}")
-
+                    rating = f" - Rating: {entry.get('rating', 'N/A')}"
+                    content.append(
+                        f"  - **Attempt {i+1} ({date}{time}{rating}):** {notes}"
+                    )
         content.append("\n---\n")
 
     with open(DASHBOARD_FILE, "w", encoding="utf-8") as f:
@@ -161,7 +173,6 @@ def init():
             abort=True,
         )
 
-    # Choose problem list
     available_lists = sorted(
         [
             f.replace(".json", "")
@@ -189,7 +200,6 @@ def init():
     plan_name = available_lists[choice - 1]
     click.echo(f"You have selected: {click.style(plan_name, fg='cyan')}")
 
-    # Get start date
     start_date_str = click.prompt(
         "\nEnter start date (YYYY-MM-DD, leave blank for today)",
         default=get_today_str(),
@@ -205,16 +215,20 @@ def init():
     )
 
     click.echo("\nPlease select a content richness level:")
-    click.echo("  1. Full Rich: Embedded videos and all spoilers.")
     click.echo(
-        "  2. Spoilers Only: Video links open in browser, other spoilers included."
+        "  1. Minimal: Links to problems and solutions, notes, and manual time tracking."
     )
-    click.echo("  3. Minimal: No spoilers or resource links, just the problem.")
+    click.echo("  2. Spoilers: Adds collapsible hints and full solution spoilers.")
+    click.echo("  3. Video Link: Adds a direct link to the YouTube video walkthrough.")
+    click.echo("  4. Video Embed: Embeds the YouTube video directly in the plan file.")
     richness_choice = click.prompt(
-        "Enter your choice", type=int, default=1, show_default=True
+        "Enter your choice (1-4)",
+        type=click.IntRange(1, 4),
+        default=1,
+        show_default=True,
     )
 
-    level_map = {1: "full", 2: "spoilers_only", 3: "minimal"}
+    level_map = {1: "minimal", 2: "spoilers", 3: "video_link", 4: "video_embed"}
     rich_content_level = level_map[richness_choice]
 
     try:
@@ -274,7 +288,7 @@ def plan():
         click.echo(click.style("No plan initialized. Run 'init' first.", fg="red"))
         return
 
-    rich_content_level = state.get("rich_content_level", "full")
+    rich_content_level = state.get("rich_content_level", "minimal")
     today = get_today_str()
     plan_file_path = os.path.join(DAILY_PLANS_DIR, f"{today}.md")
 
@@ -282,97 +296,109 @@ def plan():
         os.remove(f)
     click.echo(f"Cleaned workspace: '{WORKSPACE_DIR}'")
 
-    rollover_tasks = [
-        p
-        for p in state["problems"]
-        if p["status"] == "pending" and p["scheduled_date"] < today
-    ]
-    new_tasks = [
-        p
-        for p in state["problems"]
-        if p["status"] == "pending" and p["scheduled_date"] == today
-    ]
+    all_pending = [p for p in state["problems"] if p["status"] == "pending"]
+    overdue_tasks = sorted(
+        [p for p in all_pending if p["scheduled_date"] < today],
+        key=lambda x: x["scheduled_date"],
+    )
+    new_tasks_today = [p for p in all_pending if p["scheduled_date"] == today]
+
     repetitions = [
         p
         for p in state["problems"]
         if p["status"] == "completed" and p["next_repetition_date"] == today
     ]
 
+    if overdue_tasks:
+        click.echo(
+            click.style(f"You have {len(overdue_tasks)} overdue problems.", fg="yellow")
+        )
+        focus_count = click.prompt(
+            f"How many of the oldest ones would you like to focus on today?",
+            type=click.IntRange(1, len(overdue_tasks)),
+            default=min(5, len(overdue_tasks)),
+        )
+
+        tasks_to_solve = overdue_tasks[:focus_count]
+        new_tasks = []
+        section_title = "**Backlog Focus:**"
+    else:
+        tasks_to_solve = new_tasks_today
+        new_tasks = new_tasks_today
+        section_title = ""
+
     content = [f"# LeetCode Plan for: {today}\n"]
 
     def generate_problem_markdown(task, level):
-        """Helper that generates markdown based on the richness level."""
         lines = []
-        lines.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
+        lines.append(f"- [ ] {task['id']}\\. {task['title']} ({task['category']})")
         lines.append("    *   **Rating (1-4)**: ")
         lines.append("    *   **Notes**: ")
-
-        # If the level is minimal, we are done here.
-        if level == "minimal":
-            return "\n".join(lines)
+        lines.append("    *   **Time Taken (Manual)**: ")
 
         resource_blocks = []
-
-        # Solution Link (present in both 'full' and 'spoilers_only')
-        if task.get("solution_link"):
-            link = task["solution_link"]
-            resource_blocks.append(
-                f"        *   [{link.get('text', 'Solution Link')}]({link.get('url', '#')})"
-            )
-
-        # YouTube Link (behavior depends on the level)
-        if task.get("youtube_id"):
-            yt_id = task["youtube_id"]
-            video_url = f"https://www.youtube.com/watch?v={yt_id}"
-            if level == "full":  # Level 1: Full Rich Embed
-                video_block = f'        *   **Video Walkthrough:**\n            <iframe src="https://www.youtube.com/embed/{yt_id}" width="560" height="315" frameborder="0" allowfullscreen></iframe>'
-                resource_blocks.append(video_block)
-            elif level == "spoilers_only":  # Level 2: Simple Link
-                resource_blocks.append(f"        *   [Video Walkthrough]({video_url})")
-
-        # Hints and Solutions (present in both 'full' and 'spoilers_only')
-        if task.get("hints"):
-            hint_lines = ["        *   **Hints:**"]
-            for i, hint_text in enumerate(task["hints"], 1):
-                hint_lines.append(
-                    f"            - <details><summary>Hint {i}</summary>{hint_text}</details>"
+        if level in ["minimal", "spoilers", "video_link", "video_embed"]:
+            if task.get("leetcode_url"):
+                resource_blocks.append(
+                    f"        *   [LeetCode Problem]({task['leetcode_url']})"
                 )
-            resource_blocks.append("\n".join(hint_lines))
-
-        if task.get("solution"):
-            sol = task["solution"]
-            sol_block = [
-                "        *   <details><summary>Full Solution (Spoilers)</summary>"
-            ]
-            if sol.get("explanation"):
-                sol_block.append(
-                    f"            **Explanation:**\n            {sol['explanation']}\n"
+            if task.get("solution_link"):
+                link = task["solution_link"]
+                resource_blocks.append(
+                    f"        *   [{link.get('text', 'Solution Link')}]({link.get('url', '#')})"
                 )
-            if sol.get("code"):
-                for lang, code in sol["code"].items():
-                    indented_code = "\n".join(
-                        ["            " + line for line in code.split("\n")]
+
+        if level in ["spoilers", "video_link", "video_embed"]:
+            if task.get("hints"):
+                hint_lines = ["        *   **Hints:**"]
+                for i, hint_text in enumerate(task["hints"], 1):
+                    hint_lines.append(
+                        f"            - <details><summary>Hint {i}</summary>{hint_text}</details>"
                     )
+                resource_blocks.append("\n".join(hint_lines))
+            if task.get("solution"):
+                sol = task["solution"]
+                sol_block = [
+                    "        *   <details><summary>Full Solution (Spoilers)</summary>"
+                ]
+                if sol.get("explanation"):
                     sol_block.append(
-                        f"            **{lang.capitalize()} Code:**\n            ```{lang}\n{indented_code}\n            ```"
+                        f"            **Explanation:**\n            {sol['explanation']}\n"
                     )
-            sol_block.append("            </details>")
-            resource_blocks.append("\n".join(sol_block))
+                if sol.get("code"):
+                    for lang, code in sol["code"].items():
+                        indented_code = "\n".join(
+                            ["            " + line for line in code.split("\n")]
+                        )
+                        sol_block.append(
+                            f"            **{lang.capitalize()} Code:**\n            ```{lang}\n{indented_code}\n            ```"
+                        )
+                sol_block.append("            </details>")
+                resource_blocks.append("\n".join(sol_block))
+
+        if level in ["video_link", "video_embed"]:
+            if task.get("youtube_id"):
+                yt_id = task["youtube_id"]
+                video_url = f"https://www.youtube.com/watch?v={yt_id}"
+                if level == "video_embed":
+                    video_block = f'        *   **Video Walkthrough:**\n            <iframe src="https://www.youtube.com/embed/{yt_id}" width="560" height="315" frameborder="0" allowfullscreen></iframe>'
+                    resource_blocks.append(video_block)
+                else:
+                    resource_blocks.append(
+                        f"        *   [Video Walkthrough]({video_url})"
+                    )
 
         if resource_blocks:
             lines.append("    *   **Resources**:")
             lines.extend(resource_blocks)
         return "\n".join(lines)
 
-    if rollover_tasks or new_tasks:
+    if tasks_to_solve:
         content.append("---\n\n## 🚀 New Problems To Solve\n")
-        if rollover_tasks:
-            content.append("**Rollover from previous days:**")
-            for task in sorted(rollover_tasks, key=lambda x: x["scheduled_date"]):
-                content.append(generate_problem_markdown(task, rich_content_level))
-        if new_tasks:
-            for task in new_tasks:
-                content.append(generate_problem_markdown(task, rich_content_level))
+        if section_title:
+            content.append(section_title)
+        for task in tasks_to_solve:
+            content.append(generate_problem_markdown(task, rich_content_level))
     else:
         content.append(
             "---\n\n## 🚀 New Problems To Solve\n\n*No new problems scheduled for today. Great job!*"
@@ -393,17 +419,6 @@ def plan():
     click.echo(click.style(f"Today's plan created at: '{plan_file_path}'", fg="green"))
 
 
-def format_duration(seconds):
-    """Formats a duration in seconds into a human-readable string."""
-    if seconds < 60:
-        return f"{int(seconds)}s"
-    minutes = seconds / 60
-    if minutes < 60:
-        return f"{int(minutes)}m {int(seconds % 60)}s"
-    hours = minutes / 60
-    return f"{int(hours)}h {int(minutes % 60)}m"
-
-
 @cli.command()
 def sync():
     """Syncs progress, including time and rating, and applies adaptive repetition."""
@@ -413,13 +428,14 @@ def sync():
         return
 
     synced_files = []
-
     for plan_file in glob.glob(os.path.join(DAILY_PLANS_DIR, "*.md")):
         with open(plan_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         problems_to_update = {}
-        problem_starts = list(re.finditer(r"^\*\s*\[[ xX]\]", content, re.MULTILINE))
+        problem_starts = list(
+            re.finditer(r"^[\*\-]\s*\[[ xX]\]", content, re.MULTILINE)
+        )
 
         for i, start_match in enumerate(problem_starts):
             if "[x]" not in start_match.group(0).lower():
@@ -434,37 +450,55 @@ def sync():
             block = content[start_pos:end_pos]
 
             id_match = re.search(r"(\d+)\\?\.", block)
-            rating_match = re.search(
-                r"\*\*Rating \(1-4\)\*\*:\s*(\d)", block, re.IGNORECASE
-            )
-            notes_match = re.search(r"\*\*Notes\*\*:\s*(.*)", block, re.IGNORECASE)
+            if not id_match:
+                continue
 
-            if id_match:
-                problem_id = int(id_match.group(1))
-                rating = int(rating_match.group(1)) if rating_match else 0
-                notes = notes_match.group(1).strip() if notes_match else ""
+            problem_id = int(id_match.group(1))
 
-                # --- Restore Automatic Time Tracking Logic ---
-                time_taken_str = "N/A"
-                solution_files = glob.glob(
-                    os.path.join(WORKSPACE_DIR, f"{problem_id}.*")
+            notes = ""
+            rating = 0
+            manual_time = ""
+
+            for line in block.split("\n"):
+                line = line.strip()
+                if "**notes**:" in line.lower():
+                    notes = line.split(":", 1)[1].strip()
+                elif "**rating (1-4)**:" in line.lower():
+                    rating_match = re.search(r"(\d)", line)
+                    if rating_match:
+                        rating = int(rating_match.group(1))
+                elif "**time taken (manual)**:" in line.lower():
+                    manual_time = line.split(":", 1)[1].strip()
+
+            # --- Graceful Defaults ---
+            if rating == 0:
+                click.echo(
+                    click.style(
+                        f"Warning: Rating not found for problem {problem_id}. Defaulting to 'Medium' (2).",
+                        fg="yellow",
+                    )
                 )
-                if solution_files:
-                    solution_file = solution_files[0]
-                    try:
-                        creation_time = os.path.getctime(solution_file)
-                        modified_time = os.path.getmtime(solution_file)
-                        duration_seconds = modified_time - creation_time
+                rating = 2
+            time_taken_str = "N/A"
+            solution_files = glob.glob(os.path.join(WORKSPACE_DIR, f"{problem_id}.*"))
+            if solution_files:
+                try:
+                    creation_time = os.path.getctime(solution_files[0])
+                    modified_time = os.path.getmtime(solution_files[0])
+                    duration_seconds = modified_time - creation_time
+                    if duration_seconds > 1:
                         time_taken_str = format_duration(duration_seconds)
-                    except FileNotFoundError:
-                        pass
-                # --- End of Time Tracking Logic ---
+                except FileNotFoundError:
+                    pass
 
-                problems_to_update[problem_id] = {
-                    "notes": notes,
-                    "rating": rating,
-                    "time_taken": time_taken_str,
-                }
+            if time_taken_str == "N/A" and manual_time:
+                time_taken_str = manual_time
+
+            problems_to_update[problem_id] = {
+                "notes": notes,
+                "rating": rating,
+                "time_taken": time_taken_str,
+            }
 
         if problems_to_update:
             for p in state["problems"]:
@@ -506,13 +540,10 @@ def sync():
 
                         next_date = datetime.now() + timedelta(days=next_interval)
                         p["next_repetition_date"] = next_date.strftime("%Y-%m-%d")
-
                         click.echo(
                             f"Synced progress for: {p['id']}. {p['title']} (Rating: {rating}, Time: {data['time_taken']})"
                         )
-
             save_state(state)
-
         synced_files.append(plan_file)
 
     if not synced_files:
@@ -524,7 +555,6 @@ def sync():
 
     for f in synced_files:
         os.remove(f)
-
     click.echo(f"Synced and removed {len(synced_files)} daily plan(s).")
     generate_dashboard()
 
@@ -552,17 +582,81 @@ def add(count):
         click.echo("No more pending problems left to add!")
         return
 
+    rich_content_level = state.get("rich_content_level", "minimal")
     content = ["\n---\n\n## ✨ Added Problems\n"]
+
+    # We must replicate the same markdown generation logic from the `plan` command for consistency.
+    def generate_problem_markdown(task, level):
+        lines = []
+        lines.append(f"- [ ] {task['id']}\\. {task['title']} ({task['category']})")
+        lines.append("    *   **Rating (1-4)**: ")
+        lines.append("    *   **Notes**: ")
+        lines.append("    *   **Time Taken (Manual)**: ")
+
+        resource_blocks = []
+        if level in ["minimal", "spoilers", "video_link", "video_embed"]:
+            if task.get("leetcode_url"):
+                resource_blocks.append(
+                    f"        *   [LeetCode Problem]({task['leetcode_url']})"
+                )
+            if task.get("solution_link"):
+                link = task["solution_link"]
+                resource_blocks.append(
+                    f"        *   [{link.get('text', 'Solution Link')}]({link.get('url', '#')})"
+                )
+
+        if level in ["spoilers", "video_link", "video_embed"]:
+            if task.get("hints"):
+                hint_lines = ["        *   **Hints:**"]
+                for i, hint_text in enumerate(task["hints"], 1):
+                    hint_lines.append(
+                        f"            - <details><summary>Hint {i}</summary>{hint_text}</details>"
+                    )
+                resource_blocks.append("\n".join(hint_lines))
+            if task.get("solution"):
+                sol = task["solution"]
+                sol_block = [
+                    "        *   <details><summary>Full Solution (Spoilers)</summary>"
+                ]
+                if sol.get("explanation"):
+                    sol_block.append(
+                        f"            **Explanation:**\n            {sol['explanation']}\n"
+                    )
+                if sol.get("code"):
+                    for lang, code in sol["code"].items():
+                        indented_code = "\n".join(
+                            ["            " + line for line in code.split("\n")]
+                        )
+                        sol_block.append(
+                            f"            **{lang.capitalize()} Code:**\n            ```{lang}\n{indented_code}\n            ```"
+                        )
+                sol_block.append("            </details>")
+                resource_blocks.append("\n".join(sol_block))
+
+        if level in ["video_link", "video_embed"]:
+            if task.get("youtube_id"):
+                yt_id = task["youtube_id"]
+                video_url = f"https://www.youtube.com/watch?v={yt_id}"
+                if level == "video_embed":
+                    video_block = f'        *   **Video Walkthrough:**\n            <iframe src="https://www.youtube.com/embed/{yt_id}" width="560" height="315" frameborder="0" allowfullscreen></iframe>'
+                    resource_blocks.append(video_block)
+                else:
+                    resource_blocks.append(
+                        f"        *   [Video Walkthrough]({video_url})"
+                    )
+
+        if resource_blocks:
+            lines.append("    *   **Resources**:")
+            lines.extend(resource_blocks)
+        return "\n".join(lines)
+
     for task in extra_problems:
-        # Pull the problem's schedule date to today
         for p_state in state["problems"]:
             if p_state["id"] == task["id"]:
                 p_state["scheduled_date"] = today
                 break
 
-        content.append(f"*   [ ] {task['id']}\\. {task['title']} ({task['category']})")
-        content.append(f"    *   **Notes**:")
-        content.append(f"    *   **Time Taken**:")
+        content.append(generate_problem_markdown(task, rich_content_level))
 
     with open(plan_file_path, "a", encoding="utf-8") as f:
         f.write("\n".join(content))
@@ -586,10 +680,8 @@ def reset():
         "Are you sure you want to reset? This will archive your current progress.",
         abort=True,
     )
-
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
-    # Archive essential files
     if os.path.exists(STATE_FILE):
         shutil.move(STATE_FILE, os.path.join(ARCHIVE_DIR, f"{timestamp}_state.json"))
     if os.path.exists(DASHBOARD_FILE):
@@ -597,7 +689,6 @@ def reset():
             DASHBOARD_FILE, os.path.join(ARCHIVE_DIR, f"{timestamp}_dashboard.md")
         )
 
-    # Clear working directories
     for f in os.listdir(DAILY_PLANS_DIR):
         os.remove(os.path.join(DAILY_PLANS_DIR, f))
     for f in os.listdir(WORKSPACE_DIR):
