@@ -103,6 +103,26 @@
                 }
             },
             {
+                "id": 271,
+                "title": "Encode and Decode Strings",
+                "leetcode_url": "https://leetcode.com/problems/encode-and-decode-strings/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/encode-and-decode-strings"
+                },
+                "youtube_id": "B1k_sxOSgv8",
+                "hints": [
+                    "How can you delimit the strings if the strings themselves might contain your chosen delimiter?",
+                    "A robust method is to prefix each string with its length followed by a special character (e.g., '4#leet6#co!de'). This way, the decoder knows exactly how many characters to read for the next string."
+                ],
+                "solution": {
+                    "explanation": "The challenge is to encode a list of strings into a single string and decode it back, especially when the strings can contain any character. A reliable method is length-prefixing. For the `encode` function, we iterate through the input list of strings. For each string `s`, we compute its length, and create a new string in the format `len(s) + '#' + s`. We concatenate these for all strings. For example, `['leet', 'code']` becomes `'4#leet4#code'`. The `decode` function then iterates through this single encoded string. It maintains a pointer `i`. From `i`, it scans until it finds the '#' delimiter to determine the length of the next string. Once the length is parsed, it extracts that exact number of characters to reconstruct one of the original strings. The pointer `i` is then advanced to the start of the next length-prefix, and the process repeats until the entire encoded string is consumed.",
+                    "code": {
+                        "python": "class Codec:\n    def encode(self, strs: list[str]) -> str:\n        \"\"\"Encodes a list of strings to a single string.\n        \"\"\"\n        res = \"\"\n        for s in strs:\n            res += str(len(s)) + \"#\" + s\n        return res\n\n    def decode(self, s: str) -> list[str]:\n        \"\"\"Decodes a single string to a list of strings.\n        \"\"\"\n        res = []\n        i = 0\n\n        while i < len(s):\n            j = i\n            while s[j] != '#':\n                j += 1\n            length = int(s[i:j])\n            res.append(s[j + 1 : j + 1 + length])\n            i = j + 1 + length\n        return res"
+                    }
+                }
+            },
+            {
                 "id": 238,
                 "title": "Product of Array Except Self",
                 "leetcode_url": "https://leetcode.com/problems/product-of-array-except-self/",
@@ -327,26 +347,6 @@
                 }
             },
             {
-                "id": 76,
-                "title": "Minimum Window Substring",
-                "leetcode_url": "https://leetcode.com/problems/minimum-window-substring/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/minimum-window-substring"
-                },
-                "youtube_id": "jSto0O4AJbM",
-                "hints": [
-                    "Use a sliding window approach. You need two hash maps: one to store the character counts of the target string `t`, and another to track the character counts in your current window.",
-                    "Keep track of how many characters from `t` you have in your window and how many you need. Expand the window until it's valid, then shrink it from the left to find the minimum possible size."
-                ],
-                "solution": {
-                    "explanation": "We use a sliding window approach with two hash maps. The first map, `countT`, stores the character frequencies required by string `t`. The second, `window`, stores the frequencies in our current window. We also use two counters, `have` and `need`. `need` is the number of unique characters in `t`, and `have` tracks how many of those unique characters we have met the frequency requirement for in our current window. We expand the window by moving the right pointer `r`. Whenever a character's count in `window` matches its count in `countT`, we increment `have`. Once `have == need`, our window is valid. We then try to shrink it from the left by moving the `l` pointer. As we shrink, if a character's count drops below what's required, we decrement `have`, and the window becomes invalid again. We continue this process, keeping track of the smallest valid window found.",
-                    "code": {
-                        "python": "class Solution:\n    def minWindow(self, s: str, t: str) -> str:\n        if t == \"\": return \"\"\n        \n        countT, window = {}, {}\n        for c in t:\n            countT[c] = 1 + countT.get(c, 0)\n            \n        have, need = 0, len(countT)\n        res, resLen = [-1, -1], float(\"infinity\")\n        l = 0\n        for r in range(len(s)):\n            c = s[r]\n            window[c] = 1 + window.get(c, 0)\n            \n            if c in countT and window[c] == countT[c]:\n                have += 1\n            \n            while have == need:\n                # update our result\n                if (r - l + 1) < resLen:\n                    res = [l, r]\n                    resLen = (r - l + 1)\n                # pop from the left of our window\n                window[s[l]] -= 1\n                if s[l] in countT and window[s[l]] < countT[s[l]]:\n                    have -= 1\n                l += 1\n        l, r = res\n        return s[l:r+1] if resLen != float(\"infinity\") else \"\""
-                    }
-                }
-            },
-            {
                 "id": 567,
                 "title": "Permutation in String",
                 "leetcode_url": "https://leetcode.com/problems/permutation-in-string/",
@@ -363,6 +363,26 @@
                     "explanation": "This problem asks if any permutation of `s1` is a substring of `s2`. This is equivalent to finding a substring in `s2` that has the exact same character counts as `s1`. We can use a fixed-size sliding window. First, we compute the character frequency map of `s1`. Then, we slide a window of size `len(s1)` across `s2`. For each window, we compute its character frequency map and compare it to the map of `s1`. If they match, we return `True`. To optimize, instead of re-computing the map for each window, we can slide the window one character at a time, updating the frequency map by decrementing the count of the character leaving the window and incrementing the count of the character entering it.",
                     "code": {
                         "python": "class Solution:\n    def checkInclusion(self, s1: str, s2: str) -> bool:\n        if len(s1) > len(s2): return False\n\n        s1Count, s2Count = [0] * 26, [0] * 26\n        for i in range(len(s1)):\n            s1Count[ord(s1[i]) - ord('a')] += 1\n            s2Count[ord(s2[i]) - ord('a')] += 1\n\n        matches = 0\n        for i in range(26):\n            if s1Count[i] == s2Count[i]:\n                matches += 1\n        \n        l = 0\n        for r in range(len(s1), len(s2)):\n            if matches == 26: return True\n\n            index = ord(s2[r]) - ord('a')\n            s2Count[index] += 1\n            if s1Count[index] == s2Count[index]:\n                matches += 1\n            elif s1Count[index] + 1 == s2Count[index]:\n                matches -= 1\n            \n            index = ord(s2[l]) - ord('a')\n            s2Count[index] -= 1\n            if s1Count[index] == s2Count[index]:\n                matches += 1\n            elif s1Count[index] - 1 == s2Count[index]:\n                matches -= 1\n            l += 1\n        return matches == 26"
+                    }
+                }
+            },
+            {
+                "id": 76,
+                "title": "Minimum Window Substring",
+                "leetcode_url": "https://leetcode.com/problems/minimum-window-substring/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/minimum-window-substring"
+                },
+                "youtube_id": "jSto0O4AJbM",
+                "hints": [
+                    "Use a sliding window approach. You need two hash maps: one to store the character counts of the target string `t`, and another to track the character counts in your current window.",
+                    "Keep track of how many characters from `t` you have in your window and how many you need. Expand the window until it's valid, then shrink it from the left to find the minimum possible size."
+                ],
+                "solution": {
+                    "explanation": "We use a sliding window approach with two hash maps. The first map, `countT`, stores the character frequencies required by string `t`. The second, `window`, stores the frequencies in our current window. We also use two counters, `have` and `need`. `need` is the number of unique characters in `t`, and `have` tracks how many of those unique characters we have met the frequency requirement for in our current window. We expand the window by moving the right pointer `r`. Whenever a character's count in `window` matches its count in `countT`, we increment `have`. Once `have == need`, our window is valid. We then try to shrink it from the left by moving the `l` pointer. As we shrink, if a character's count drops below what's required, we decrement `have`, and the window becomes invalid again. We continue this process, keeping track of the smallest valid window found.",
+                    "code": {
+                        "python": "class Solution:\n    def minWindow(self, s: str, t: str) -> str:\n        if t == \"\": return \"\"\n        \n        countT, window = {}, {}\n        for c in t:\n            countT[c] = 1 + countT.get(c, 0)\n            \n        have, need = 0, len(countT)\n        res, resLen = [-1, -1], float(\"infinity\")\n        l = 0\n        for r in range(len(s)):\n            c = s[r]\n            window[c] = 1 + window.get(c, 0)\n            \n            if c in countT and window[c] == countT[c]:\n                have += 1\n            \n            while have == need:\n                # update our result\n                if (r - l + 1) < resLen:\n                    res = [l, r]\n                    resLen = (r - l + 1)\n                # pop from the left of our window\n                window[s[l]] -= 1\n                if s[l] in countT and window[s[l]] < countT[s[l]]:\n                    have -= 1\n                l += 1\n        l, r = res\n        return s[l:r+1] if resLen != float(\"infinity\") else \"\""
                     }
                 }
             },
@@ -631,6 +651,26 @@
                 }
             },
             {
+                "id": 981,
+                "title": "Time Based Key-Value Store",
+                "leetcode_url": "https://leetcode.com/problems/time-based-key-value-store/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/time-based-key-value-store"
+                },
+                "youtube_id": "xtHe6seJbds",
+                "hints": [
+                    "You'll need a way to store multiple values for the same key. The values for a single key should be sorted by timestamp.",
+                    "A hash map where the value is a list of `(timestamp, value)` pairs works well. For the `get` operation, you can then perform a binary search on this list."
+                ],
+                "solution": {
+                    "explanation": "The core of this data structure is a hash map where keys are the input strings, and the values are lists. Each list will store pairs of `[value, timestamp]`. The `set` operation is straightforward: we simply append the new `[value, timestamp]` pair to the list associated with the given key. Since the problem guarantees that timestamps are strictly increasing, each list will naturally be sorted by timestamp. The `get` operation is where the main logic lies. We retrieve the list of values for the given key. On this list, we perform a binary search to find the value with the largest timestamp that is less than or equal to the requested `timestamp`. In the binary search, if a middle element's timestamp is less than or equal to our target, it's a potential answer, so we store it and search the right half for a better (more recent) answer. If it's greater, we must search the left half. This allows us to find the correct value in O(log n) time per `get` operation.",
+                    "code": {
+                        "python": "class TimeMap:\n    def __init__(self):\n        self.store = {}\n\n    def set(self, key: str, value: str, timestamp: int) -> None:\n        if key not in self.store:\n            self.store[key] = []\n        self.store[key].append([value, timestamp])\n\n    def get(self, key: str, timestamp: int) -> str:\n        res = \"\"\n        values = self.store.get(key, [])\n        \n        # Binary search\n        l, r = 0, len(values) - 1\n        while l <= r:\n            m = (l + r) // 2\n            if values[m][1] <= timestamp:\n                res = values[m][0]\n                l = m + 1\n            else:\n                r = m - 1\n        return res"
+                    }
+                }
+            },
+            {
                 "id": 4,
                 "title": "Median of Two Sorted Arrays",
                 "leetcode_url": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
@@ -693,6 +733,26 @@
                 }
             },
             {
+                "id": 141,
+                "title": "Linked List Cycle",
+                "leetcode_url": "https://leetcode.com/problems/linked-list-cycle/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/linked-list-cycle"
+                },
+                "youtube_id": "gBTe7lFR3vc",
+                "hints": [
+                    "This is a classic two-pointer problem known as Floyd's Tortoise and Hare algorithm.",
+                    "Use a `slow` pointer that moves one step at a time and a `fast` pointer that moves two steps at a time. If there is a cycle, they are guaranteed to meet."
+                ],
+                "solution": {
+                    "explanation": "The problem can be solved efficiently using Floyd's Tortoise and Hare algorithm. We use two pointers, `slow` and `fast`, both initialized to the head of the list. In each iteration, `slow` moves one step forward, and `fast` moves two steps forward. If the linked list has no cycle, the `fast` pointer (or `fast.next`) will eventually become `None`. However, if there is a cycle, the `fast` pointer will eventually lap the `slow` pointer, and they will point to the same node. We can detect this by checking if `slow == fast` inside the loop. If they meet, we have found a cycle and can return `True`. If the loop terminates, it means no cycle was found, so we return `False`.",
+                    "code": {
+                        "python": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, x):\n#         self.val = x\n#         self.next = None\n\nclass Solution:\n    def hasCycle(self, head: [list]) -> bool:\n        slow, fast = head, head\n\n        while fast and fast.next:\n            slow = slow.next\n            fast = fast.next.next\n            if slow == fast:\n                return True\n        \n        return False"
+                    }
+                }
+            },
+            {
                 "id": 143,
                 "title": "Reorder List",
                 "leetcode_url": "https://leetcode.com/problems/reorder-list/",
@@ -733,22 +793,22 @@
                 }
             },
             {
-                "id": 141,
-                "title": "Linked List Cycle",
-                "leetcode_url": "https://leetcode.com/problems/linked-list-cycle/",
+                "id": 138,
+                "title": "Copy List with Random Pointer",
+                "leetcode_url": "https://leetcode.com/problems/copy-list-with-random-pointer/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/linked-list-cycle"
+                    "url": "https://neetcode.io/solutions/copy-list-with-random-pointer"
                 },
-                "youtube_id": "gBTe7lFR3vc",
+                "youtube_id": "5Y2EiZST97Y",
                 "hints": [
-                    "This is a classic two-pointer problem known as Floyd's Tortoise and Hare algorithm.",
-                    "Use a `slow` pointer that moves one step at a time and a `fast` pointer that moves two steps at a time. If there is a cycle, they are guaranteed to meet."
+                    "You need a way to map the original nodes to their corresponding new nodes.",
+                    "Use a hash map. In the first pass, create a copy of each node and store the mapping: `old_node -> new_node`. In the second pass, iterate through the original list again and set the `next` and `random` pointers for the new nodes using the map."
                 ],
                 "solution": {
-                    "explanation": "The problem can be solved efficiently using Floyd's Tortoise and Hare algorithm. We use two pointers, `slow` and `fast`, both initialized to the head of the list. In each iteration, `slow` moves one step forward, and `fast` moves two steps forward. If the linked list has no cycle, the `fast` pointer (or `fast.next`) will eventually become `None`. However, if there is a cycle, the `fast` pointer will eventually lap the `slow` pointer, and they will point to the same node. We can detect this by checking if `slow == fast` inside the loop. If they meet, we have found a cycle and can return `True`. If the loop terminates, it means no cycle was found, so we return `False`.",
+                    "explanation": "This problem can be solved in two passes using a hash map. The hash map will store the mapping from each original node to its newly created copy. In the first pass, we iterate through the original linked list. For each node, we create a new copy of it and store this `old_node -> new_node` mapping in our hash map. In the second pass, we iterate through the original list again. For each original node `curr`, we can now set the pointers for its copy, which we can access via `copyMap[curr]`. The `next` pointer of the copy will be `copyMap[curr.next]`, and the `random` pointer will be `copyMap[curr.random]`. We need to handle the case where `curr.next` or `curr.random` is `None`. The head of our new copied list is simply `copyMap[head]`.",
                     "code": {
-                        "python": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, x):\n#         self.val = x\n#         self.next = None\n\nclass Solution:\n    def hasCycle(self, head: [list]) -> bool:\n        slow, fast = head, head\n\n        while fast and fast.next:\n            slow = slow.next\n            fast = fast.next.next\n            if slow == fast:\n                return True\n        \n        return False"
+                        "python": "# Definition for a Node.\n# class Node:\n#     def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):\n#         self.val = int(x)\n#         self.next = next\n#         self.random = random\n\nclass Solution:\n    def copyRandomList(self, head: '[list]') -> '[list]':\n        oldToCopy = { None: None }\n\n        cur = head\n        while cur:\n            copy = Node(cur.val)\n            oldToCopy[cur] = copy\n            cur = cur.next\n        \n        cur = head\n        while cur:\n            copy = oldToCopy[cur]\n            copy.next = oldToCopy[cur.next]\n            copy.random = oldToCopy[cur.random]\n            cur = cur.next\n            \n        return oldToCopy[head]"
                     }
                 }
             },
@@ -793,22 +853,43 @@
                 }
             },
             {
-                "id": 138,
-                "title": "Copy List with Random Pointer",
-                "leetcode_url": "https://leetcode.com/problems/copy-list-with-random-pointer/",
+                "id": 146,
+                "title": "LRU Cache",
+                "leetcode_url": "https://leetcode.com/problems/lru-cache/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/copy-list-with-random-pointer"
+                    "url": "https://neetcode.io/solutions/lru-cache"
                 },
-                "youtube_id": "5Y2EiZST97Y",
+                "youtube_id": "7ABFKPK2hD4",
                 "hints": [
-                    "You need a way to map the original nodes to their corresponding new nodes.",
-                    "Use a hash map. In the first pass, create a copy of each node and store the mapping: `old_node -> new_node`. In the second pass, iterate through the original list again and set the `next` and `random` pointers for the new nodes using the map."
+                    "To achieve O(1) for both `get` and `put`, you need a combination of two data structures.",
+                    "Use a hash map for O(1) lookups of keys and a doubly linked list to maintain the order of use."
                 ],
                 "solution": {
-                    "explanation": "This problem can be solved in two passes using a hash map. The hash map will store the mapping from each original node to its newly created copy. In the first pass, we iterate through the original linked list. For each node, we create a new copy of it and store this `old_node -> new_node` mapping in our hash map. In the second pass, we iterate through the original list again. For each original node `curr`, we can now set the pointers for its copy, which we can access via `copyMap[curr]`. The `next` pointer of the copy will be `copyMap[curr.next]`, and the `random` pointer will be `copyMap[curr.random]`. We need to handle the case where `curr.next` or `curr.random` is `None`. The head of our new copied list is simply `copyMap[head]`.",
+                    "explanation": "The key to an O(1) LRU Cache is combining a hash map and a doubly linked list. The hash map stores `key -> node` pairs, allowing for O(1) access to any node in our list. The doubly linked list maintains the order of use. We use two dummy nodes, `left` (Least Recently Used side) and `right` (Most Recently Used side). When a node is accessed (via `get` or `put`), we move it to the right end of the list, marking it as most recently used. When we `put` a new item and the cache is full, we evict the node at the left end of the list (the LRU node) and remove it from our hash map. The `get` operation involves looking up the key in the map, moving the corresponding node to the MRU position, and returning its value. The `put` operation involves either updating an existing node (and moving it) or inserting a new node at the MRU position.",
                     "code": {
-                        "python": "# Definition for a Node.\n# class Node:\n#     def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):\n#         self.val = int(x)\n#         self.next = next\n#         self.random = random\n\nclass Solution:\n    def copyRandomList(self, head: '[list]') -> '[list]':\n        oldToCopy = { None: None }\n\n        cur = head\n        while cur:\n            copy = Node(cur.val)\n            oldToCopy[cur] = copy\n            cur = cur.next\n        \n        cur = head\n        while cur:\n            copy = oldToCopy[cur]\n            copy.next = oldToCopy[cur.next]\n            copy.random = oldToCopy[cur.random]\n            cur = cur.next\n            \n        return oldToCopy[head]"
+                        "python": "class Node:\n    def __init__(self, key, val):\n        self.key, self.val = key, val\n        self.prev = self.next = None\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.cap = capacity\n        self.cache = {} # map key to node\n\n        self.left, self.right = Node(0, 0), Node(0, 0)\n        self.left.next, self.right.prev = self.right, self.left\n\n    # remove node from list\n    def remove(self, node):\n        prev, nxt = node.prev, node.next\n        prev.next, nxt.prev = nxt, prev\n\n    # insert node at right\n    def insert(self, node):\n        prev, nxt = self.right.prev, self.right\n        prev.next = nxt.prev = node\n        node.next, node.prev = nxt, prev\n\n    def get(self, key: int) -> int:\n        if key in self.cache:\n            self.remove(self.cache[key])\n            self.insert(self.cache[key])\n            return self.cache[key].val\n        return -1\n\n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self.remove(self.cache[key])\n        self.cache[key] = Node(key, value)\n        self.insert(self.cache[key])\n\n        if len(self.cache) > self.cap:\n            # remove from the list and delete the LRU from hashmap\n            lru = self.left.next\n            self.remove(lru)\n            del self.cache[lru.key]"
+                    }
+                }
+            },
+            {
+                "id": 23,
+                "title": "Merge k Sorted Lists",
+                "leetcode_url": "https://leetcode.com/problems/merge-k-sorted-lists/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/merge-k-sorted-lists"
+                },
+                "youtube_id": "q5a5OiCoTvg",
+                "hints": [
+                    "A simple approach is to collect all nodes into a single list, sort it, and then rebuild the linked list. However, this is not the most efficient way.",
+                    "A min-heap (or priority queue) is the ideal data structure for this problem.",
+                    "Insert the head of each of the k lists into the min-heap. Then, repeatedly extract the minimum node, add it to the result list, and insert the next node from the same list into the heap."
+                ],
+                "solution": {
+                    "explanation": "This problem is a classic application of a min-heap. The goal is to efficiently find the smallest node among the current heads of all `k` lists. A min-heap is perfect for this. The algorithm is as follows: \n1. Initialize a min-heap. Push the head node of each of the `k` lists onto the heap, as long as the list is not empty. Since Python's heapq cannot compare ListNode objects, we store tuples like `(node.val, i, node)` where `i` is a unique counter to handle tie-breaks. \n2. Create a dummy head and a `tail` pointer for our new merged list. \n3. Loop as long as the min-heap is not empty. In each iteration, pop the smallest element (which will be a tuple containing the node with the minimum value). \n4. Append this node to our result list by setting `tail.next` to it and advancing `tail`. \n5. If the node we just popped has a `next` node, push that `next` node into the heap. \n6. After the loop, the `dummy.next` will point to the head of the fully merged and sorted list.",
+                    "code": {
+                        "python": "import heapq\n\n# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def mergeKLists(self, lists: list[list]) -> [list]:\n        if not lists or len(lists) == 0:\n            return None\n\n        while len(lists) > 1:\n            mergedLists = []\n\n            for i in range(0, len(lists), 2):\n                l1 = lists[i]\n                l2 = lists[i+1] if (i+1) < len(lists) else None\n                mergedLists.append(self.mergeList(l1, l2))\n            lists = mergedLists\n        return lists[0]\n\n    def mergeList(self, l1, l2):\n        dummy = ListNode()\n        tail = dummy\n\n        while l1 and l2:\n            if l1.val < l2.val:\n                tail.next = l1\n                l1 = l1.next\n            else:\n                tail.next = l2\n                l2 = l2.next\n            tail = tail.next\n        if l1:\n            tail.next = l1\n        if l2:\n            tail.next = l2\n        return dummy.next"
                     }
                 }
             },
@@ -829,26 +910,6 @@
                     "explanation": "This problem can be solved recursively. We define a base case: if the list has fewer than `k` nodes, we don't need to do anything and can just return the head. To check this, we first iterate `k` nodes ahead to find the `k`-th node. If we can't (i.e., we hit `None`), we return. The core of the recursion is to reverse the first `k` nodes. We can use a standard iterative reversal for this, keeping track of the `groupPrev` (the last node of the *previous* k-group) and the `kthNode` (the start of the *next* k-group). After reversing the current group, the original head of this group becomes the new tail. This new tail's `next` pointer must be connected to the result of the recursive call on the rest of the list (`kthNode`). The `groupPrev`'s `next` pointer must be connected to the new head of the reversed group. A dummy node is very helpful to handle the connection for the very first group.",
                     "code": {
                         "python": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def reverseKGroup(self, head: [list], k: int) -> [list]:\n        dummy = ListNode(0, head)\n        groupPrev = dummy\n\n        while True:\n            kth = self.getKth(groupPrev, k)\n            if not kth:\n                break\n            groupNext = kth.next\n\n            # reverse group\n            prev, curr = kth.next, groupPrev.next\n            while curr != groupNext:\n                tmp = curr.next\n                curr.next = prev\n                prev = curr\n                curr = tmp\n            \n            tmp = groupPrev.next\n            groupPrev.next = kth\n            groupPrev = tmp\n        return dummy.next\n\n    def getKth(self, curr, k):\n        while curr and k > 0:\n            curr = curr.next\n            k -= 1\n        return curr"
-                    }
-                }
-            },
-            {
-                "id": 146,
-                "title": "LRU Cache",
-                "leetcode_url": "https://leetcode.com/problems/lru-cache/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/lru-cache"
-                },
-                "youtube_id": "7ABFKPK2hD4",
-                "hints": [
-                    "To achieve O(1) for both `get` and `put`, you need a combination of two data structures.",
-                    "Use a hash map for O(1) lookups of keys and a doubly linked list to maintain the order of use."
-                ],
-                "solution": {
-                    "explanation": "The key to an O(1) LRU Cache is combining a hash map and a doubly linked list. The hash map stores `key -> node` pairs, allowing for O(1) access to any node in our list. The doubly linked list maintains the order of use. We use two dummy nodes, `left` (Least Recently Used side) and `right` (Most Recently Used side). When a node is accessed (via `get` or `put`), we move it to the right end of the list, marking it as most recently used. When we `put` a new item and the cache is full, we evict the node at the left end of the list (the LRU node) and remove it from our hash map. The `get` operation involves looking up the key in the map, moving the corresponding node to the MRU position, and returning its value. The `put` operation involves either updating an existing node (and moving it) or inserting a new node at the MRU position.",
-                    "code": {
-                        "python": "class Node:\n    def __init__(self, key, val):\n        self.key, self.val = key, val\n        self.prev = self.next = None\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.cap = capacity\n        self.cache = {} # map key to node\n\n        self.left, self.right = Node(0, 0), Node(0, 0)\n        self.left.next, self.right.prev = self.right, self.left\n\n    # remove node from list\n    def remove(self, node):\n        prev, nxt = node.prev, node.next\n        prev.next, nxt.prev = nxt, prev\n\n    # insert node at right\n    def insert(self, node):\n        prev, nxt = self.right.prev, self.right\n        prev.next = nxt.prev = node\n        node.next, node.prev = nxt, prev\n\n    def get(self, key: int) -> int:\n        if key in self.cache:\n            self.remove(self.cache[key])\n            self.insert(self.cache[key])\n            return self.cache[key].val\n        return -1\n\n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self.remove(self.cache[key])\n        self.cache[key] = Node(key, value)\n        self.insert(self.cache[key])\n\n        if len(self.cache) > self.cap:\n            # remove from the list and delete the LRU from hashmap\n            lru = self.left.next\n            self.remove(lru)\n            del self.cache[lru.key]"
                     }
                 }
             }
@@ -1031,6 +1092,27 @@
                     "explanation": "The problem asks for the rightmost node of each level. This can be solved perfectly with a Breadth-First Search (BFS) that performs a level order traversal. We use a queue, initialized with the root. We loop level by level. In each iteration of the main loop, we get the size of the queue, which tells us how many nodes are on the current level. We then process all nodes on this level. The key is to add only the value of the very last node processed in this inner loop to our result list. This last node is guaranteed to be the rightmost one. We add the children of all nodes in the level to the queue for the next iteration.",
                     "code": {
                         "python": "from collections import deque\n\n# Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def rightSideView(self, root: [list]) -> list[int]:\n        res = []\n        q = deque()\n        if root:\n            q.append(root)\n\n        while q:\n            rightSide = None\n            qLen = len(q)\n\n            for i in range(qLen):\n                node = q.popleft()\n                if node:\n                    rightSide = node\n                    if node.left:\n                        q.append(node.left)\n                    if node.right:\n                        q.append(node.right)\n            if rightSide:\n                res.append(rightSide.val)\n        return res"
+                    }
+                }
+            },
+            {
+                "id": 1448,
+                "title": "Count Good Nodes in Binary Tree",
+                "leetcode_url": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/count-good-nodes-in-binary-tree"
+                },
+                "youtube_id": "7cp5imvDzl4",
+                "hints": [
+                    "This problem can be solved with a single Depth-First Search (DFS) traversal.",
+                    "As you traverse from the root down to a node, you need to keep track of the maximum value encountered on that path.",
+                    "A node is 'good' if its value is greater than or equal to the maximum value passed down from its parent."
+                ],
+                "solution": {
+                    "explanation": "To solve this, we can use a Depth-First Search (DFS) approach. We define a recursive helper function, for instance `dfs(node, maxVal)`, where `node` is the current node we are visiting and `maxVal` is the maximum value encountered on the path from the root to the current node's parent. The base case for the recursion is a null node, which contributes 0 good nodes. For a non-null node, we first check if it's a 'good' node. This is true if `node.val >= maxVal`. We set a local count `res` to 1 if it's good, and 0 otherwise. Then, we update the maximum value for the path going forward: `newMax = max(maxVal, node.val)`. We then make recursive calls for the left and right children using this `newMax`. The total number of good nodes in the subtree rooted at the current node is `res` plus the results from the recursive calls to the left and right children. The initial call to the function would be `dfs(root, root.val)`, as the root is always a good node.",
+                    "code": {
+                        "python": "# Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def goodNodes(self, root: 'TreeNode') -> int:\n        def dfs(node, maxVal):\n            if not node:\n                return 0\n            \n            res = 1 if node.val >= maxVal else 0\n            maxVal = max(maxVal, node.val)\n            res += dfs(node.left, maxVal)\n            res += dfs(node.right, maxVal)\n            return res\n\n        return dfs(root, root.val)"
                     }
                 }
             },
@@ -1239,26 +1321,6 @@
                 }
             },
             {
-                "id": 215,
-                "title": "Kth Largest Element in an Array",
-                "leetcode_url": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/kth-largest-element-in-an-array"
-                },
-                "youtube_id": "_l3hLL4p-lE",
-                "hints": [
-                    "Sorting the array and picking the k-th element from the end is a simple O(n log n) solution.",
-                    "A more optimal solution with O(n) average time complexity is the Quickselect algorithm, which is a modification of Quicksort."
-                ],
-                "solution": {
-                    "explanation": "Quickselect is an efficient algorithm to find the k-th smallest/largest element in an unordered list. It's very similar to Quicksort. We first choose a 'pivot' element from the array. Then, we partition the array around the pivot, placing all elements smaller than the pivot to its left and all elements larger to its right. After partitioning, the pivot is in its final sorted position. Let's say this position is `p`. We can compare `p` with our target index `k`. If `p > k`, we know the element we're looking for is in the left subarray. If `p < k`, it's in the right subarray. If `p == k`, we've found our element. We recursively apply this process to the smaller subarray until we find the element at the k-th position. This has an average time complexity of O(n).",
-                    "code": {
-                        "python": "class Solution:\n    def findKthLargest(self, nums: list[int], k: int) -> int:\n        k = len(nums) - k\n\n        def quickSelect(l, r):\n            pivot, p = nums[r], l\n            for i in range(l, r):\n                if nums[i] <= pivot:\n                    nums[p], nums[i] = nums[i], nums[p]\n                    p += 1\n            nums[p], nums[r] = nums[r], nums[p]\n            \n            if p > k:   return quickSelect(l, p - 1)\n            elif p < k: return quickSelect(p + 1, r)\n            else:       return nums[p]\n\n        return quickSelect(0, len(nums) - 1)"
-                    }
-                }
-            },
-            {
                 "id": 973,
                 "title": "K Closest Points to Origin",
                 "leetcode_url": "https://leetcode.com/problems/k-closest-points-to-origin/",
@@ -1401,6 +1463,26 @@
                 }
             },
             {
+                "id": 40,
+                "title": "Combination Sum II",
+                "leetcode_url": "https://leetcode.com/problems/combination-sum-ii/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/combination-sum-ii"
+                },
+                "youtube_id": "rSA3t6BDDwg",
+                "hints": [
+                    "This is a combination of 'Combination Sum' and 'Subsets II'. The input might have duplicates, and each number can only be used once in each combination.",
+                    "Sort the input array. Use a backtracking approach. The key is to skip duplicate numbers to avoid duplicate combinations in the result."
+                ],
+                "solution": {
+                    "explanation": "This problem requires a backtracking approach similar to 'Combination Sum', but with two key differences: each number can be used only once, and the input may contain duplicates. First, we must sort the `candidates` array to handle duplicates easily. We use a recursive DFS function. The base cases are when the `target` becomes 0 (we found a valid combination) or negative (invalid path). In our recursive loop, we iterate through the candidates. The crucial part is the check to avoid duplicate combinations: if `i > start_index` and `candidates[i] == candidates[i-1]`, we `continue` to the next iteration. This ensures we only start a new path with the first occurrence of a duplicate number. For each valid candidate, we add it to our current path, make a recursive call `dfs(i + 1, ..., new_target)`, and then backtrack by popping the candidate.",
+                    "code": {
+                        "python": "class Solution:\n    def combinationSum2(self, candidates: list[int], target: int) -> list[list[int]]:\n        candidates.sort()\n        res = []\n\n        def backtrack(cur, pos, target):\n            if target == 0:\n                res.append(cur.copy())\n            if target <= 0:\n                return\n\n            prev = -1\n            for i in range(pos, len(candidates)):\n                if candidates[i] == prev:\n                    continue\n                cur.append(candidates[i])\n                backtrack(cur, i + 1, target - candidates[i])\n                cur.pop()\n                prev = candidates[i]\n        backtrack([], 0, target)\n        return res"
+                    }
+                }
+            },
+            {
                 "id": 46,
                 "title": "Permutations",
                 "leetcode_url": "https://leetcode.com/problems/permutations/",
@@ -1441,26 +1523,6 @@
                 }
             },
             {
-                "id": 40,
-                "title": "Combination Sum II",
-                "leetcode_url": "https://leetcode.com/problems/combination-sum-ii/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/combination-sum-ii"
-                },
-                "youtube_id": "rSA3t6BDDwg",
-                "hints": [
-                    "This is a combination of 'Combination Sum' and 'Subsets II'. The input might have duplicates, and each number can only be used once in each combination.",
-                    "Sort the input array. Use a backtracking approach. The key is to skip duplicate numbers to avoid duplicate combinations in the result."
-                ],
-                "solution": {
-                    "explanation": "This problem requires a backtracking approach similar to 'Combination Sum', but with two key differences: each number can be used only once, and the input may contain duplicates. First, we must sort the `candidates` array to handle duplicates easily. We use a recursive DFS function. The base cases are when the `target` becomes 0 (we found a valid combination) or negative (invalid path). In our recursive loop, we iterate through the candidates. The crucial part is the check to avoid duplicate combinations: if `i > start_index` and `candidates[i] == candidates[i-1]`, we `continue` to the next iteration. This ensures we only start a new path with the first occurrence of a duplicate number. For each valid candidate, we add it to our current path, make a recursive call `dfs(i + 1, ..., new_target)`, and then backtrack by popping the candidate.",
-                    "code": {
-                        "python": "class Solution:\n    def combinationSum2(self, candidates: list[int], target: int) -> list[list[int]]:\n        candidates.sort()\n        res = []\n\n        def backtrack(cur, pos, target):\n            if target == 0:\n                res.append(cur.copy())\n            if target <= 0:\n                return\n\n            prev = -1\n            for i in range(pos, len(candidates)):\n                if candidates[i] == prev:\n                    continue\n                cur.append(candidates[i])\n                backtrack(cur, i + 1, target - candidates[i])\n                cur.pop()\n                prev = candidates[i]\n        backtrack([], 0, target)\n        return res"
-                    }
-                }
-            },
-            {
                 "id": 79,
                 "title": "Word Search",
                 "leetcode_url": "https://leetcode.com/problems/word-search/",
@@ -1497,6 +1559,27 @@
                     "explanation": "We can solve this using backtracking. We'll define a recursive DFS function that takes a starting index `i`. The base case is when `i` is out of bounds, which means we have successfully partitioned the entire string, so we add our current partition path to the result. In the recursive step, we loop from our start index `i` to the end of the string. In each iteration `j`, we consider the substring `s[i:j+1]`. We check if this substring is a palindrome. If it is, we add it to our current partition `part`, and then make a recursive call `dfs(j + 1)` to find partitions for the rest of the string. After the recursive call returns, we backtrack by popping the substring from our `part` to explore other possibilities.",
                     "code": {
                         "python": "class Solution:\n    def partition(self, s: str) -> list[list[str]]:\n        res = []\n        part = []\n\n        def dfs(i):\n            if i >= len(s):\n                res.append(part.copy())\n                return\n            for j in range(i, len(s)):\n                if self.isPali(s, i, j):\n                    part.append(s[i:j+1])\n                    dfs(j + 1)\n                    part.pop()\n        dfs(0)\n        return res\n\n    def isPali(self, s, l, r):\n        while l < r:\n            if s[l] != s[r]:\n                return False\n            l, r = l + 1, r - 1\n        return True"
+                    }
+                }
+            },
+            {
+                "id": 17,
+                "title": "Letter Combinations of a Phone Number",
+                "leetcode_url": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/letter-combinations-of-a-phone-number"
+                },
+                "youtube_id": "e-F2f2-vD4s",
+                "hints": [
+                    "This is a classic backtracking problem that can be visualized as a decision tree.",
+                    "You'll need a mapping from digits to their corresponding letters. A hash map is a good choice.",
+                    "Use a recursive function that builds the combinations. The state for the recursion can be the index of the digit you are currently processing."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved efficiently using a backtracking algorithm. We first create a mapping from digits ('2' through '9') to the letters they represent. We then define a recursive function, let's call it `backtrack`, which will build the combinations. This function will take the current index of the input `digits` string and the current combination string being built (`path`). The base case for the recursion is when the length of our `path` equals the length of the input `digits`. At this point, we have a complete combination, so we add it to our result list. In the recursive step, we get the current digit, look up its corresponding letters from our map, and loop through them. For each letter, we make a recursive call to `backtrack` with the next index (`index + 1`) and the updated path (`path + letter`). Since we are passing a new string, the 'backtracking' is handled implicitly by the call stack returning.",
+                    "code": {
+                        "python": "class Solution:\n    def letterCombinations(self, digits: str) -> list[str]:\n        res = []\n        digitToChar = {\n            \"2\": \"abc\",\n            \"3\": \"def\",\n            \"4\": \"ghi\",\n            \"5\": \"jkl\",\n            \"6\": \"mno\",\n            \"7\": \"qprs\",\n            \"8\": \"tuv\",\n            \"9\": \"wxyz\",\n        }\n\n        def backtrack(i, curStr):\n            if len(curStr) == len(digits):\n                res.append(curStr)\n                return\n            \n            for c in digitToChar[digits[i]]:\n                backtrack(i + 1, curStr + c)\n\n        if digits:\n            backtrack(0, \"\")\n        \n        return res"
                     }
                 }
             },
@@ -1543,26 +1626,6 @@
                 }
             },
             {
-                "id": 133,
-                "title": "Clone Graph",
-                "leetcode_url": "https://leetcode.com/problems/clone-graph/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/clone-graph"
-                },
-                "youtube_id": "mQeF6bN8hMk",
-                "hints": [
-                    "You need a way to map the original nodes to their newly created copies to avoid creating duplicate nodes.",
-                    "A hash map is perfect for storing the mapping `old_node -> new_node`. You can traverse the original graph using either DFS or BFS."
-                ],
-                "solution": {
-                    "explanation": "To clone a graph, we need to traverse it while creating copies of each node and linking them correctly. A hash map is essential to store the mapping from an original node to its clone (`oldToNew`). This prevents us from re-cloning a node we've already seen. We can use a recursive DFS approach. The DFS function takes an original node as input. The base case is if the node is already in our `oldToNew` map, in which case we just return its clone from the map. If not, we create a new copy of the node, put it in the map, and then iterate through the original node's neighbors. For each neighbor, we make a recursive call to our DFS function. The result of this call is the cloned neighbor node, which we then append to the `neighbors` list of our newly created copied node.",
-                    "code": {
-                        "python": "# Definition for a Node.\n# class Node:\n#     def __init__(self, val = 0, neighbors = None):\n#         self.val = val\n#         self.neighbors = neighbors if neighbors is not None else []\n\nclass Solution:\n    def cloneGraph(self, node: 'Node') -> 'Node':\n        oldToNew = {}\n\n        def dfs(node):\n            if node in oldToNew:\n                return oldToNew[node]\n            \n            copy = Node(node.val)\n            oldToNew[node] = copy\n            for nei in node.neighbors:\n                copy.neighbors.append(dfs(nei))\n            return copy\n        \n        return dfs(node) if node else None"
-                    }
-                }
-            },
-            {
                 "id": 695,
                 "title": "Max Area of Island",
                 "leetcode_url": "https://leetcode.com/problems/max-area-of-island/",
@@ -1583,6 +1646,68 @@
                 }
             },
             {
+                "id": 133,
+                "title": "Clone Graph",
+                "leetcode_url": "https://leetcode.com/problems/clone-graph/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/clone-graph"
+                },
+                "youtube_id": "mQeF6bN8hMk",
+                "hints": [
+                    "You need a way to map the original nodes to their newly created copies to avoid creating duplicate nodes.",
+                    "A hash map is perfect for storing the mapping `old_node -> new_node`. You can traverse the original graph using either DFS or BFS."
+                ],
+                "solution": {
+                    "explanation": "To clone a graph, we need to traverse it while creating copies of each node and linking them correctly. A hash map is essential to store the mapping from an original node to its clone (`oldToNew`). This prevents us from re-cloning a node we've already seen. We can use a recursive DFS approach. The DFS function takes an original node as input. The base case is if the node is already in our `oldToNew` map, in which case we just return its clone from the map. If not, we create a new copy of the node, put it in the map, and then iterate through the original node's neighbors. For each neighbor, we make a recursive call to our DFS function. The result of this call is the cloned neighbor node, which we then append to the `neighbors` list of our newly created copied node.",
+                    "code": {
+                        "python": "# Definition for a Node.\n# class Node:\n#     def __init__(self, val = 0, neighbors = None):\n#         self.val = val\n#         self.neighbors = neighbors if neighbors is not None else []\n\nclass Solution:\n    def cloneGraph(self, node: 'Node') -> 'Node':\n        oldToNew = {}\n\n        def dfs(node):\n            if node in oldToNew:\n                return oldToNew[node]\n            \n            copy = Node(node.val)\n            oldToNew[node] = copy\n            for nei in node.neighbors:\n                copy.neighbors.append(dfs(nei))\n            return copy\n        \n        return dfs(node) if node else None"
+                    }
+                }
+            },
+            {
+                "id": 286,
+                "title": "Walls and Gates",
+                "leetcode_url": "https://leetcode.com/problems/walls-and-gates/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/walls-and-gates"
+                },
+                "youtube_id": "e69C6xhiSQE",
+                "hints": [
+                    "This problem can be modeled as finding the shortest path from each empty room to the nearest gate.",
+                    "A Breadth-First Search (BFS) is the ideal algorithm for a shortest path problem in an unweighted graph.",
+                    "Instead of starting a separate BFS from each empty room, a more efficient approach is to start a multi-source BFS from all the gates simultaneously."
+                ],
+                "solution": {
+                    "explanation": "To solve this problem efficiently, we should use a multi-source Breadth-First Search (BFS). The key insight is to start the search from all the gates at the same time, rather than from each empty room. We begin by iterating through the entire grid and adding the coordinates of all gates (cells with value 0) to a queue. We also use a `visited` set to avoid processing the same cell multiple times. The BFS proceeds in levels. In each level, we dequeue all the cells currently in the queue. For each cell `(r, c)`, we explore its four neighbors `(nr, nc)`. If a neighbor is an in-bounds, unvisited, and empty room, we update its distance to be the distance of the current cell plus one (`rooms[nr][nc] = rooms[r][c] + 1`), add it to the `visited` set, and enqueue it for the next level. This process guarantees that the first time we reach an empty room, it will be via the shortest path from a gate.",
+                    "code": {
+                        "python": "from collections import deque\n\nclass Solution:\n    def wallsAndGates(self, rooms: list[list[int]]) -> None:\n        \"\"\"\n        Do not return anything, modify rooms in-place instead.\n        \"\"\"\n        ROWS, COLS = len(rooms), len(rooms[0])\n        visit = set()\n        q = deque()\n\n        for r in range(ROWS):\n            for c in range(COLS):\n                if rooms[r][c] == 0:\n                    q.append((r, c))\n                    visit.add((r, c))\n        \n        dist = 0\n        while q:\n            for i in range(len(q)):\n                r, c = q.popleft()\n                rooms[r][c] = dist\n                \n                # Add neighbors\n                add_r, add_c = r + 1, c\n                if (add_r < ROWS and (add_r, add_c) not in visit and rooms[add_r][add_c] != -1):\n                    q.append((add_r, add_c))\n                    visit.add((add_r, add_c))\n\n                add_r, add_c = r - 1, c\n                if (add_r >= 0 and (add_r, add_c) not in visit and rooms[add_r][add_c] != -1):\n                    q.append((add_r, add_c))\n                    visit.add((add_r, add_c))\n\n                add_r, add_c = r, c + 1\n                if (add_c < COLS and (add_r, add_c) not in visit and rooms[add_r][add_c] != -1):\n                    q.append((add_r, add_c))\n                    visit.add((add_r, add_c))\n\n                add_r, add_c = r, c - 1\n                if (add_c >= 0 and (add_r, add_c) not in visit and rooms[add_r][add_c] != -1):\n                    q.append((add_r, add_c))\n                    visit.add((add_r, add_c))\n            dist += 1"
+                    }
+                }
+            },
+            {
+                "id": 994,
+                "title": "Rotting Oranges",
+                "leetcode_url": "https://leetcode.com/problems/rotting-oranges/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/rotting-oranges"
+                },
+                "youtube_id": "TzoDDOj60zE",
+                "hints": [
+                    "This problem can be thought of as a shortest path problem from all rotten oranges to all fresh oranges.",
+                    "A multi-source Breadth-First Search (BFS) is the perfect algorithm for this. The number of levels in the BFS corresponds to the number of minutes.",
+                    "Initialize a queue with all the initially rotten oranges. In each iteration (minute), process all oranges in the queue and add their newly rotten neighbors."
+                ],
+                "solution": {
+                    "explanation": "This problem is a classic case for a multi-source Breadth-First Search (BFS). We can model the grid as a graph where the oranges are nodes. The goal is to find the maximum shortest distance from an initially rotten orange to any fresh orange. First, we iterate through the grid to count the total number of fresh oranges and to add the coordinates of all initially rotten oranges to a queue. Then, we start the BFS, proceeding in levels, where each level represents one minute. We use a `time` variable to track the minutes. In each minute, we process all oranges currently in the queue. For each rotten orange we dequeue, we check its four adjacent neighbors. If a neighbor is a fresh orange, we mark it as rotten, add it to the queue for the next minute's processing, and decrement our count of fresh oranges. If the queue becomes empty and there are still fresh oranges left, it means they are unreachable, so we should return -1. Otherwise, the final value of `time` is our answer.",
+                    "code": {
+                        "python": "from collections import deque\n\nclass Solution:\n    def orangesRotting(self, grid: list[list[int]]) -> int:\n        q = deque()\n        fresh = 0\n        time = 0\n        ROWS, COLS = len(grid), len(grid[0])\n\n        for r in range(ROWS):\n            for c in range(COLS):\n                if grid[r][c] == 1:\n                    fresh += 1\n                if grid[r][c] == 2:\n                    q.append((r, c))\n\n        directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]\n        while q and fresh > 0:\n            for i in range(len(q)):\n                r, c = q.popleft()\n\n                for dr, dc in directions:\n                    row, col = r + dr, c + dc\n\n                    # if in bounds and fresh, make rotten\n                    if (row < 0 or row == ROWS or\n                        col < 0 or col == COLS or\n                        grid[row][col] != 1):\n                        continue\n                    \n                    grid[row][col] = 2\n                    q.append((row, col))\n                    fresh -= 1\n            time += 1\n        \n        return time if fresh == 0 else -1"
+                    }
+                }
+            },
+            {
                 "id": 417,
                 "title": "Pacific Atlantic Water Flow",
                 "leetcode_url": "https://leetcode.com/problems/pacific-atlantic-water-flow/",
@@ -1599,6 +1724,27 @@
                     "explanation": "The key insight is to work backwards from the oceans. We create two sets, `pac` and `atl`, to store the coordinates of cells that can flow to the Pacific and Atlantic oceans, respectively. We then run a DFS or BFS traversal starting from all the cells that border each ocean. For the Pacific, we start a traversal from every cell in the top row and the leftmost column. The traversal can only move from a cell to a neighbor if the neighbor's height is greater than or equal to the current cell's height (since water flows downhill). We do the same for the Atlantic, starting from the bottom and right borders. After both traversals are complete, the solution is the intersection of the `pac` and `atl` sets\u2014these are the cells that can reach both oceans.",
                     "code": {
                         "python": "class Solution:\n    def pacificAtlantic(self, heights: list[list[int]]) -> list[list[int]]:\n        ROWS, COLS = len(heights), len(heights[0])\n        pac, atl = set(), set()\n\n        def dfs(r, c, visit, prevHeight):\n            if ((r, c) in visit or r < 0 or c < 0 or r == ROWS or c == COLS or\n                heights[r][c] < prevHeight):\n                return\n            visit.add((r,c))\n            dfs(r + 1, c, visit, heights[r][c])\n            dfs(r - 1, c, visit, heights[r][c])\n            dfs(r, c + 1, visit, heights[r][c])\n            dfs(r, c - 1, visit, heights[r][c])\n\n        for c in range(COLS):\n            dfs(0, c, pac, heights[0][c])\n            dfs(ROWS - 1, c, atl, heights[ROWS - 1][c])\n        \n        for r in range(ROWS):\n            dfs(r, 0, pac, heights[r][0])\n            dfs(r, COLS - 1, atl, heights[r][COLS - 1])\n        \n        res = []\n        for r in range(ROWS):\n            for c in range(COLS):\n                if (r,c) in pac and (r,c) in atl:\n                    res.append([r, c])\n        return res"
+                    }
+                }
+            },
+            {
+                "id": 130,
+                "title": "Surrounded Regions",
+                "leetcode_url": "https://leetcode.com/problems/surrounded-regions/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/surrounded-regions"
+                },
+                "youtube_id": "9z2BunfoZ5Y",
+                "hints": [
+                    "The key insight is that any 'O' connected to the border of the grid cannot be captured.",
+                    "Instead of trying to find surrounded regions, find all the 'O's that are *not* surrounded by starting a traversal from the 'O's on the border.",
+                    "After marking all 'O's connected to the border, the remaining 'O's are the ones that should be captured."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved by working in reverse. Instead of identifying and flipping surrounded 'O's, we can identify all 'O's that are *not* surrounded and protect them. An 'O' is not surrounded if it is on the border or if it is connected to an 'O' that is on the border. The algorithm is as follows:\n1. Iterate through the four borders of the grid. If you find an 'O', start a traversal (like DFS or BFS) from that cell.\n2. During the traversal, mark every 'O' you visit with a temporary marker (e.g., 'T' for temporary). This marks the entire region of 'O's connected to the border.\n3. After checking all borders, iterate through the entire grid a second time. \n4. For each cell, if you see an 'O', it means this 'O' was not connected to any border, so it's a surrounded region. Flip it to an 'X'.\n5. If you see a 'T', it means this was a border-connected 'O' that we protected. Flip it back to 'O'.\nThis two-pass approach correctly identifies and captures only the surrounded regions.",
+                    "code": {
+                        "python": "class Solution:\n    def solve(self, board: list[list[str]]) -> None:\n        \"\"\"\n        Do not return anything, modify board in-place instead.\n        \"\"\"\n        ROWS, COLS = len(board), len(board[0])\n\n        def capture(r, c):\n            if (r < 0 or c < 0 or r == ROWS or c == COLS or board[r][c] != \"O\"):\n                return\n            board[r][c] = \"T\"\n            capture(r + 1, c)\n            capture(r - 1, c)\n            capture(r, c + 1)\n            capture(r, c - 1)\n\n        # 1. (DFS) Capture unsurrounded regions (O -> T)\n        for r in range(ROWS):\n            for c in range(COLS):\n                if (board[r][c] == \"O\" and \n                    (r in [0, ROWS - 1] or c in [0, COLS - 1])):\n                    capture(r, c)\n\n        # 2. Capture surrounded regions (O -> X)\n        for r in range(ROWS):\n            for c in range(COLS):\n                if board[r][c] == \"O\":\n                    board[r][c] = \"X\"\n\n        # 3. Uncapture unsurrounded regions (T -> O)\n        for r in range(ROWS):\n            for c in range(COLS):\n                if board[r][c] == \"T\":\n                    board[r][c] = \"O\""
                     }
                 }
             },
@@ -1643,6 +1789,46 @@
                 }
             },
             {
+                "id": 261,
+                "title": "Graph Valid Tree",
+                "leetcode_url": "https://leetcode.com/problems/graph-valid-tree/",
+                "solution_link": {
+                    "text": "NeetCode Video",
+                    "url": "https://www.youtube.com/watch?v=bXsUuownnoQ"
+                },
+                "youtube_id": "bXsUuownnoQ",
+                "hints": [
+                    "A graph is a valid tree if and only if two conditions are met: it has no cycles, and it is fully connected.",
+                    "For a graph with `n` nodes to be a tree, it must have exactly `n-1` edges. After checking this, you just need to detect a cycle."
+                ],
+                "solution": {
+                    "explanation": "A graph is a valid tree if it's connected and has no cycles. An important property is that a connected graph with `n` nodes has exactly `n-1` edges if and only if it's a tree. So, we can first check if `len(edges) == n - 1`. If not, it can't be a tree. If this condition holds, we just need to verify that the graph is fully connected (or, equivalently, that it has no cycles, as the edge count condition implies one if the other is true). We can do this by performing a single traversal (DFS or BFS) starting from an arbitrary node (e.g., node 0). After the traversal, we check if the number of visited nodes is equal to `n`. If it is, the graph is fully connected and therefore a valid tree.",
+                    "code": {
+                        "python": "class Solution:\n    def validTree(self, n: int, edges: list[list[int]]) -> bool:\n        if not n:\n            return True\n        if len(edges) != n - 1:\n            return False\n\n        adj = { i:[] for i in range(n) }\n        for n1, n2 in edges:\n            adj[n1].append(n2)\n            adj[n2].append(n1)\n\n        visit = set()\n        def dfs(i, prev):\n            if i in visit:\n                return False\n            \n            visit.add(i)\n            for j in adj[i]:\n                if j == prev:\n                    continue\n                if not dfs(j, i):\n                    return False\n            return True\n\n        return dfs(0, -1) and n == len(visit)"
+                    }
+                }
+            },
+            {
+                "id": 323,
+                "title": "Number of Connected Components in an Undirected Graph",
+                "leetcode_url": "https://leetcode.com/problems/number-of-connected-components-in-an-undirected-graph/",
+                "solution_link": {
+                    "text": "NeetCode Video",
+                    "url": "https://www.youtube.com/watch?v=8f1A64_R_us"
+                },
+                "youtube_id": "8f1A64_R_us",
+                "hints": [
+                    "This is a classic graph traversal problem.",
+                    "Iterate through all the nodes from 0 to n-1. Keep a `visited` set. If a node has not been visited, you've found a new component. Increment your component counter and start a traversal (DFS or BFS) from this node to mark every node in its component as visited."
+                ],
+                "solution": {
+                    "explanation": "To find the number of connected components, we can build an adjacency list representation of the graph. Then, we iterate through all the nodes. We use a `visited` set to keep track of nodes we've already accounted for. For each node `i` from 0 to `n-1`, if `i` is not in our `visited` set, it means we have discovered a new, previously unseen component. We increment our component counter. Then, we start a graph traversal (like DFS or BFS) from node `i`. This traversal will visit all the nodes connected to `i` and add them to the `visited` set. After the traversal is complete, we continue our main loop. The final value of our counter is the answer.",
+                    "code": {
+                        "python": "class Solution:\n    def countComponents(self, n: int, edges: list[list[int]]) -> int:\n        adj = { i:[] for i in range(n) }\n        for n1, n2 in edges:\n            adj[n1].append(n2)\n            adj[n2].append(n1)\n        \n        visit = set()\n        count = 0\n        def dfs(i):\n            if i in visit:\n                return\n            visit.add(i)\n            for neighbor in adj[i]:\n                dfs(neighbor)\n\n        for i in range(n):\n            if i not in visit:\n                count += 1\n                dfs(i)\n        return count"
+                    }
+                }
+            },
+            {
                 "id": 684,
                 "title": "Redundant Connection",
                 "leetcode_url": "https://leetcode.com/problems/redundant-connection/",
@@ -1681,44 +1867,26 @@
                         "python": "from collections import deque, defaultdict\n\nclass Solution:\n    def ladderLength(self, beginWord: str, endWord: str, wordList: list[str]) -> int:\n        if endWord not in wordList:\n            return 0\n        \n        nei = defaultdict(list)\n        wordList.append(beginWord)\n        for word in wordList:\n            for j in range(len(word)):\n                pattern = word[:j] + \"*\" + word[j+1:]\n                nei[pattern].append(word)\n        \n        visit = set([beginWord])\n        q = deque([beginWord])\n        res = 1\n        while q:\n            for i in range(len(q)):\n                word = q.popleft()\n                if word == endWord:\n                    return res\n                for j in range(len(word)):\n                    pattern = word[:j] + \"*\" + word[j+1:]\n                    for neiWord in nei[pattern]:\n                        if neiWord not in visit:\n                            visit.add(neiWord)\n                            q.append(neiWord)\n            res += 1\n        return 0"
                     }
                 }
-            },
+            }
+        ],
+        "Advanced Graphs": [
             {
-                "id": 323,
-                "title": "Number of Connected Components in an Undirected Graph",
-                "leetcode_url": "https://leetcode.com/problems/number-of-connected-components-in-an-undirected-graph/",
+                "id": 743,
+                "title": "Network Delay Time",
+                "leetcode_url": "https://leetcode.com/problems/network-delay-time/",
                 "solution_link": {
-                    "text": "NeetCode Video",
-                    "url": "https://www.youtube.com/watch?v=8f1A64_R_us"
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/network-delay-time"
                 },
-                "youtube_id": "8f1A64_R_us",
+                "youtube_id": "EaphyqKU4PQ",
                 "hints": [
-                    "This is a classic graph traversal problem.",
-                    "Iterate through all the nodes from 0 to n-1. Keep a `visited` set. If a node has not been visited, you've found a new component. Increment your component counter and start a traversal (DFS or BFS) from this node to mark every node in its component as visited."
+                    "This is a classic single-source shortest path problem on a weighted, directed graph.",
+                    "Dijkstra's algorithm is the perfect fit. Use a min-heap to always explore the node that is currently reachable in the shortest amount of time."
                 ],
                 "solution": {
-                    "explanation": "To find the number of connected components, we can build an adjacency list representation of the graph. Then, we iterate through all the nodes. We use a `visited` set to keep track of nodes we've already accounted for. For each node `i` from 0 to `n-1`, if `i` is not in our `visited` set, it means we have discovered a new, previously unseen component. We increment our component counter. Then, we start a graph traversal (like DFS or BFS) from node `i`. This traversal will visit all the nodes connected to `i` and add them to the `visited` set. After the traversal is complete, we continue our main loop. The final value of our counter is the answer.",
+                    "explanation": "To find the time it takes for a signal to reach all nodes, we need to find the shortest path from the starting node `k` to all other nodes. The answer will be the longest of these shortest paths. Dijkstra's algorithm is ideal for this. We start by building an adjacency list from the `times` input. We use a min-heap to store `(time, node)` tuples, prioritizing smaller times. We also use a `visit` set to track nodes for which we have already found the shortest path. We start with `(0, k)` in the heap. In a loop, we pop the node with the minimum time. If it's already visited, we skip it. Otherwise, we add it to `visit`, add its time to our total time, and then iterate through its neighbors, adding them to the heap with their updated travel times (`current_time + edge_weight`). The final answer is the time associated with the last node to be visited. If the number of visited nodes is less than `n`, some nodes are unreachable, and we return -1.",
                     "code": {
-                        "python": "class Solution:\n    def countComponents(self, n: int, edges: list[list[int]]) -> int:\n        adj = { i:[] for i in range(n) }\n        for n1, n2 in edges:\n            adj[n1].append(n2)\n            adj[n2].append(n1)\n        \n        visit = set()\n        count = 0\n        def dfs(i):\n            if i in visit:\n                return\n            visit.add(i)\n            for neighbor in adj[i]:\n                dfs(neighbor)\n\n        for i in range(n):\n            if i not in visit:\n                count += 1\n                dfs(i)\n        return count"
-                    }
-                }
-            },
-            {
-                "id": 261,
-                "title": "Graph Valid Tree",
-                "leetcode_url": "https://leetcode.com/problems/graph-valid-tree/",
-                "solution_link": {
-                    "text": "NeetCode Video",
-                    "url": "https://www.youtube.com/watch?v=bXsUuownnoQ"
-                },
-                "youtube_id": "bXsUuownnoQ",
-                "hints": [
-                    "A graph is a valid tree if and only if two conditions are met: it has no cycles, and it is fully connected.",
-                    "For a graph with `n` nodes to be a tree, it must have exactly `n-1` edges. After checking this, you just need to detect a cycle."
-                ],
-                "solution": {
-                    "explanation": "A graph is a valid tree if it's connected and has no cycles. An important property is that a connected graph with `n` nodes has exactly `n-1` edges if and only if it's a tree. So, we can first check if `len(edges) == n - 1`. If not, it can't be a tree. If this condition holds, we just need to verify that the graph is fully connected (or, equivalently, that it has no cycles, as the edge count condition implies one if the other is true). We can do this by performing a single traversal (DFS or BFS) starting from an arbitrary node (e.g., node 0). After the traversal, we check if the number of visited nodes is equal to `n`. If it is, the graph is fully connected and therefore a valid tree.",
-                    "code": {
-                        "python": "class Solution:\n    def validTree(self, n: int, edges: list[list[int]]) -> bool:\n        if not n:\n            return True\n        if len(edges) != n - 1:\n            return False\n\n        adj = { i:[] for i in range(n) }\n        for n1, n2 in edges:\n            adj[n1].append(n2)\n            adj[n2].append(n1)\n\n        visit = set()\n        def dfs(i, prev):\n            if i in visit:\n                return False\n            \n            visit.add(i)\n            for j in adj[i]:\n                if j == prev:\n                    continue\n                if not dfs(j, i):\n                    return False\n            return True\n\n        return dfs(0, -1) and n == len(visit)"
+                        "python": "import heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def networkDelayTime(self, times: list[list[int]], n: int, k: int) -> int:\n        edges = defaultdict(list)\n        for u, v, w in times:\n            edges[u].append((v, w))\n        \n        minHeap = [(0, k)]\n        visit = set()\n        t = 0\n        while minHeap:\n            w1, n1 = heapq.heappop(minHeap)\n            if n1 in visit:\n                continue\n            visit.add(n1)\n            t = max(t, w1)\n\n            for n2, w2 in edges[n1]:\n                if n2 not in visit:\n                    heapq.heappush(minHeap, (w1 + w2, n2))\n        return t if len(visit) == n else -1"
                     }
                 }
             },
@@ -1741,9 +1909,7 @@
                         "python": "from collections import defaultdict\n\nclass Solution:\n    def findItinerary(self, tickets: list[list[str]]) -> list[str]:\n        adj = defaultdict(list)\n        for src, dst in sorted(tickets, reverse=True):\n            adj[src].append(dst)\n        \n        route = []\n        stack = ['JFK']\n        while stack:\n            while adj[stack[-1]]:\n                stack.append(adj[stack[-1]].pop())\n            route.append(stack.pop())\n        \n        return route[::-1]"
                     }
                 }
-            }
-        ],
-        "Advanced Graphs": [
+            },
             {
                 "id": 1584,
                 "title": "Min Cost to Connect All Points",
@@ -1785,22 +1951,23 @@
                 }
             },
             {
-                "id": 743,
-                "title": "Network Delay Time",
-                "leetcode_url": "https://leetcode.com/problems/network-delay-time/",
+                "id": 269,
+                "title": "Alien Dictionary",
+                "leetcode_url": "https://leetcode.com/problems/alien-dictionary/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/network-delay-time"
+                    "url": "https://neetcode.io/solutions/alien-dictionary"
                 },
-                "youtube_id": "EaphyqKU4PQ",
+                "youtube_id": "6kTZYvNNyps",
                 "hints": [
-                    "This is a classic single-source shortest path problem on a weighted, directed graph.",
-                    "Dijkstra's algorithm is the perfect fit. Use a min-heap to always explore the node that is currently reachable in the shortest amount of time."
+                    "The problem is asking for a topological sort of the characters.",
+                    "The ordering rules can be derived by comparing adjacent words in the list. The first differing character between two adjacent words gives you a directed edge in your character graph.",
+                    "After building the graph, use Kahn's algorithm (BFS with an in-degree count) or DFS to find the topological order. Remember to handle cycles."
                 ],
                 "solution": {
-                    "explanation": "To find the time it takes for a signal to reach all nodes, we need to find the shortest path from the starting node `k` to all other nodes. The answer will be the longest of these shortest paths. Dijkstra's algorithm is ideal for this. We start by building an adjacency list from the `times` input. We use a min-heap to store `(time, node)` tuples, prioritizing smaller times. We also use a `visit` set to track nodes for which we have already found the shortest path. We start with `(0, k)` in the heap. In a loop, we pop the node with the minimum time. If it's already visited, we skip it. Otherwise, we add it to `visit`, add its time to our total time, and then iterate through its neighbors, adding them to the heap with their updated travel times (`current_time + edge_weight`). The final answer is the time associated with the last node to be visited. If the number of visited nodes is less than `n`, some nodes are unreachable, and we return -1.",
+                    "explanation": "This problem requires us to find a valid alphabetical order, which is a classic topological sort problem. First, we build a graph representing the character dependencies. We initialize an adjacency list and an in-degree map for all unique characters present in the words. Then, we compare every adjacent pair of words in the input list. For each pair, we find the first characters that differ. This difference implies an ordering rule. For example, if we compare 'wrt' and 'wrf', the first difference is at 't' and 'f', which means 't' must come before 'f'. We represent this as a directed edge `t -> f` in our graph, and we increment the in-degree of 'f'. After building the graph, we perform a topological sort using Kahn's algorithm (BFS). We initialize a queue with all characters that have an in-degree of 0. We then process the queue, adding characters to our result string. For each character we process, we decrement the in-degree of its neighbors. If a neighbor's in-degree becomes 0, we add it to the queue. If the final result string's length is less than the total number of unique characters, it means a cycle was detected in the graph, and no valid order is possible.",
                     "code": {
-                        "python": "import heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def networkDelayTime(self, times: list[list[int]], n: int, k: int) -> int:\n        edges = defaultdict(list)\n        for u, v, w in times:\n            edges[u].append((v, w))\n        \n        minHeap = [(0, k)]\n        visit = set()\n        t = 0\n        while minHeap:\n            w1, n1 = heapq.heappop(minHeap)\n            if n1 in visit:\n                continue\n            visit.add(n1)\n            t = max(t, w1)\n\n            for n2, w2 in edges[n1]:\n                if n2 not in visit:\n                    heapq.heappush(minHeap, (w1 + w2, n2))\n        return t if len(visit) == n else -1"
+                        "python": "from collections import deque, defaultdict\n\nclass Solution:\n    def alienOrder(self, words: list[str]) -> str:\n        adj = {c: set() for w in words for c in w}\n        in_degree = {c: 0 for w in words for c in w}\n\n        for i in range(len(words) - 1):\n            w1, w2 = words[i], words[i+1]\n            minLen = min(len(w1), len(w2))\n            if len(w1) > len(w2) and w1[:minLen] == w2[:minLen]:\n                return \"\"\n            for j in range(minLen):\n                if w1[j] != w2[j]:\n                    if w2[j] not in adj[w1[j]]:\n                        adj[w1[j]].add(w2[j])\n                        in_degree[w2[j]] += 1\n                    break\n        \n        q = deque([c for c in in_degree if in_degree[c] == 0])\n        res = []\n        while q:\n            c1 = q.popleft()\n            res.append(c1)\n            for c2 in adj[c1]:\n                in_degree[c2] -= 1\n                if in_degree[c2] == 0:\n                    q.append(c2)\n        \n        if len(res) < len(in_degree):\n            return \"\"\n        return \"\".join(res)"
                     }
                 }
             },
@@ -1823,26 +1990,6 @@
                         "python": "class Solution:\n    def findCheapestPrice(self, n: int, flights: list[list[int]], src: int, dst: int, k: int) -> int:\n        prices = [float(\"inf\")] * n\n        prices[src] = 0\n\n        for i in range(k + 1):\n            tmpPrices = prices.copy()\n\n            for s, d, p in flights:\n                if prices[s] == float(\"inf\"):\n                    continue\n                if prices[s] + p < tmpPrices[d]:\n                    tmpPrices[d] = prices[s] + p\n            prices = tmpPrices\n        \n        return -1 if prices[dst] == float(\"inf\") else prices[dst]"
                     }
                 }
-            },
-            {
-                "id": 1976,
-                "title": "Number of Ways to Arrive at Destination",
-                "leetcode_url": "https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/solutions/1417576/python-dijkstra-s-algorithm-detailed-explanation/"
-                },
-                "youtube_id": "Jtr31h5z99I",
-                "hints": [
-                    "This is a shortest path problem with an added twist of counting the number of such paths.",
-                    "You need to modify Dijkstra's algorithm. In addition to storing the minimum distance to a node, you also need to store the number of ways to achieve that minimum distance."
-                ],
-                "solution": {
-                    "explanation": "This problem requires a modification of Dijkstra's algorithm. We need to track two things for each node: the minimum time to reach it (`dist`) and the number of ways to do so (`ways`). We initialize `dist` with infinity and `ways` with 0 for all nodes, except the starting node 0 (`dist[0] = 0, ways[0] = 1`). We use a min-heap storing `(time, node)` to explore the graph. When we extract a node `u` from the heap, we explore its neighbors `v`. If we find a path to `v` that is strictly shorter than `dist[v]`, we've found a new best path. We update `dist[v]` with the new shorter time and set `ways[v]` equal to `ways[u]`. If we find a path to `v` that has the exact same time as `dist[v]`, we've found another shortest path. We don't update `dist[v]`, but we increment `ways[v]` by `ways[u]`. The final answer is the number of ways to reach the destination node `n-1`.",
-                    "code": {
-                        "python": "import heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def countPaths(self, n: int, roads: list[list[int]]) -> int:\n        adj = defaultdict(list)\n        for u, v, t in roads:\n            adj[u].append((v, t))\n            adj[v].append((u, t))\n\n        dist = [float('inf')] * n\n        ways = [0] * n\n        dist[0] = 0\n        ways[0] = 1\n        mod = 10**9 + 7\n\n        minHeap = [(0, 0)] # (time, node)\n\n        while minHeap:\n            d, u = heapq.heappop(minHeap)\n\n            if d > dist[u]:\n                continue\n\n            for v, t in adj[u]:\n                if dist[u] + t < dist[v]:\n                    dist[v] = dist[u] + t\n                    ways[v] = ways[u]\n                    heapq.heappush(minHeap, (dist[v], v))\n                elif dist[u] + t == dist[v]:\n                    ways[v] = (ways[v] + ways[u]) % mod\n        \n        return ways[n-1]"
-                    }
-                }
             }
         ],
         "1-D Dynamic Programming": [
@@ -1863,6 +2010,27 @@
                     "explanation": "This is a classic dynamic programming problem. The number of distinct ways to reach the `n`-th step is the sum of the ways to reach the `(n-1)`-th step and the ways to reach the `(n-2)`-th step. This forms a Fibonacci-like sequence. We can solve this with a bottom-up DP approach using constant space. We only need to keep track of the number of ways for the previous two steps. Let's call them `one` (for `n-1`) and `two` (for `n-2`). We initialize `one = 1` and `two = 1`. We then loop from `n-2` down to 0. In each iteration, we calculate the ways for the current step `temp = one + two`, then shift our pointers: `two` becomes `one`, and `one` becomes `temp`. After the loop, `one` will hold the total number of ways to reach the top.",
                     "code": {
                         "python": "class Solution:\n    def climbStairs(self, n: int) -> int:\n        one, two = 1, 1\n        for i in range(n - 1):\n            temp = one\n            one = one + two\n            two = temp\n        return one"
+                    }
+                }
+            },
+            {
+                "id": 746,
+                "title": "Min Cost Climbing Stairs",
+                "leetcode_url": "https://leetcode.com/problems/min-cost-climbing-stairs/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/min-cost-climbing-stairs"
+                },
+                "youtube_id": "kt_i_23zz1w",
+                "hints": [
+                    "This is a classic dynamic programming problem.",
+                    "The minimum cost to reach step `i` is `cost[i]` plus the minimum of the costs to have reached step `i-1` and step `i-2`.",
+                    "You can solve this with a bottom-up approach, iterating from the end of the array backwards, and using O(1) extra space."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved efficiently using a bottom-up dynamic programming approach with constant space. The goal is to find the minimum cost to reach the 'top' of the floor, which can be considered one step past the end of the `cost` array. We can think about the problem backwards: what is the minimum cost to finish from a given step `i`? The cost to finish from step `i` is `cost[i]` plus the minimum of the costs to finish from step `i+1` or `i+2`. We can iterate from the end of the array backwards, updating `cost[i]` to store this minimum total cost. Starting from the third-to-last step and moving to the beginning, we update `cost[i] = cost[i] + min(cost[i+1], cost[i+2])`. After the loop, the minimum cost to start the journey is either the cost from the first step (`cost[0]`) or the second step (`cost[1]`). The final answer is the minimum of these two values.",
+                    "code": {
+                        "python": "class Solution:\n    def minCostClimbingStairs(self, cost: list[int]) -> int:\n        cost.append(0)\n\n        for i in range(len(cost) - 3, -1, -1):\n            cost[i] += min(cost[i+1], cost[i+2])\n        \n        return min(cost[0], cost[1])"
                     }
                 }
             },
@@ -1907,76 +2075,6 @@
                 }
             },
             {
-                "id": 322,
-                "title": "Coin Change",
-                "leetcode_url": "https://leetcode.com/problems/coin-change/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/coin-change"
-                },
-                "youtube_id": "H9bfqozjoqs",
-                "hints": [
-                    "This is a classic dynamic programming problem.",
-                    "Let `dp[i]` be the minimum number of coins to make amount `i`. The recurrence relation is `dp[i] = 1 + min(dp[i - c])` for all coins `c`."
-                ],
-                "solution": {
-                    "explanation": "We can solve this using bottom-up dynamic programming. We create a DP array, `dp`, of size `amount + 1`, where `dp[a]` will store the minimum number of coins needed to make up amount `a`. We initialize the array with a large value (like `amount + 1` to represent infinity) and set `dp[0] = 0`, since 0 coins are needed for an amount of 0. We then iterate through each amount `a` from 1 to `amount`. For each amount `a`, we iterate through our available `coins`. If a coin `c` is less than or equal to `a`, we can potentially use it. The number of coins required would be `1 + dp[a - c]`. We want the minimum, so we update `dp[a]` with `min(dp[a], 1 + dp[a - c])`. After filling the entire DP array, `dp[amount]` will hold our answer. If it's still the large initial value, the amount is impossible to make.",
-                    "code": {
-                        "python": "class Solution:\n    def coinChange(self, coins: list[int], amount: int) -> int:\n        dp = [amount + 1] * (amount + 1)\n        dp[0] = 0\n\n        for a in range(1, amount + 1):\n            for c in coins:\n                if a - c >= 0:\n                    dp[a] = min(dp[a], 1 + dp[a - c])\n        \n        return dp[amount] if dp[amount] != amount + 1 else -1"
-                    }
-                }
-            },
-            {
-                "id": 300,
-                "title": "Longest Increasing Subsequence",
-                "leetcode_url": "https://leetcode.com/problems/longest-increasing-subsequence/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/longest-increasing-subsequence"
-                },
-                "youtube_id": "cjWnW0hdF1Y",
-                "hints": [
-                    "A classic DP solution involves an O(n^2) approach where `dp[i]` is the length of the LIS ending at index `i`.",
-                    "A more clever O(n log n) solution exists. It involves maintaining a sorted list of the smallest tail of all increasing subsequences of various lengths."
-                ],
-                "solution": {
-                    "explanation": "A very clever O(n log n) solution exists for this problem. We maintain an array (let's call it `sub`) which stores the smallest tail of all increasing subsequences with length `i+1`. We iterate through the input `nums`. For each number `n`, we try to place it into our `sub` array. If `n` is greater than all elements in `sub`, it means we can extend the longest subsequence found so far, so we append `n` to `sub`. If `n` is not greater than all elements, it means it can potentially be a new, smaller tail for an existing subsequence length, making it possible to build future subsequences more easily. We find the first element in `sub` that is greater than or equal to `n` and replace it with `n`. This can be done efficiently with a binary search. The final answer is the length of this `sub` array.",
-                    "code": {
-                        "python": "class Solution:\n    def lengthOfLIS(self, nums: list[int]) -> int:\n        tails = []\n        for num in nums:\n            if not tails or num > tails[-1]:\n                tails.append(num)\n            else:\n                l, r = 0, len(tails) - 1\n                while l <= r:\n                    m = (l + r) // 2\n                    if tails[m] < num:\n                        l = m + 1\n                    else:\n                        r = m - 1\n                tails[l] = num\n        return len(tails)"
-                    }
-                }
-            },
-            {
-                "id": 139,
-                "title": "Word Break",
-                "leetcode_url": "https://leetcode.com/problems/word-break/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/word-break"
-                },
-                "youtube_id": "Sx9NNgInc3A",
-                "hints": [
-                    "This is a dynamic programming problem.",
-                    "Let `dp[i]` be a boolean indicating whether the substring `s[0...i-1]` can be segmented. To compute `dp[i]`, you need to check if there's a `j < i` such that `dp[j]` is true and the substring `s[j...i-1]` is a word in the dictionary."
-                ],
-                "solution": {
-                    "explanation": "We can solve this using bottom-up dynamic programming. We create a DP array, `dp`, of size `len(s) + 1`, where `dp[i]` represents whether the prefix of `s` of length `i` can be segmented. We initialize `dp[0] = True` because an empty string can always be formed. We then iterate from `i = 1` to `len(s)`. For each `i`, we iterate backwards from `j = i - 1` to 0. In this inner loop, we consider the substring `s[j:i]`. If `dp[j]` is `True` (meaning the prefix `s[0:j]` can be formed) AND the substring `s[j:i]` is in our `wordDict`, it means we can successfully form the prefix `s[0:i]`. So, we set `dp[i] = True` and can break the inner loop. The final answer is the value of `dp[len(s)]`.",
-                    "code": {
-                        "python": "class Solution:\n    def wordBreak(self, s: str, wordDict: list[str]) -> bool:\n        dp = [False] * (len(s) + 1)\n        dp[len(s)] = True\n\n        for i in range(len(s) - 1, -1, -1):\n            for w in wordDict:\n                if (i + len(w)) <= len(s) and s[i : i + len(w)] == w:\n                    dp[i] = dp[i + len(w)]\n                if dp[i]:\n                    break\n        return dp[0]"
-                    }
-                }
-            },
-            {
-                "id": 416,
-                "title": "Partition Equal Subset Sum",
-                "leetcode_url": "https://leetcode.com/problems/partition-equal-subset-sum/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/partition-equal-subset-sum"
-                },
-                "youtube_id": "IsvocB5BJhw"
-            },
-            {
                 "id": 5,
                 "title": "Longest Palindromic Substring",
                 "leetcode_url": "https://leetcode.com/problems/longest-palindromic-substring/",
@@ -2005,6 +2103,97 @@
                     "url": "https://neetcode.io/solutions/decode-ways"
                 },
                 "youtube_id": "6aEyTjOwlJU"
+            },
+            {
+                "id": 322,
+                "title": "Coin Change",
+                "leetcode_url": "https://leetcode.com/problems/coin-change/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/coin-change"
+                },
+                "youtube_id": "H9bfqozjoqs",
+                "hints": [
+                    "This is a classic dynamic programming problem.",
+                    "Let `dp[i]` be the minimum number of coins to make amount `i`. The recurrence relation is `dp[i] = 1 + min(dp[i - c])` for all coins `c`."
+                ],
+                "solution": {
+                    "explanation": "We can solve this using bottom-up dynamic programming. We create a DP array, `dp`, of size `amount + 1`, where `dp[a]` will store the minimum number of coins needed to make up amount `a`. We initialize the array with a large value (like `amount + 1` to represent infinity) and set `dp[0] = 0`, since 0 coins are needed for an amount of 0. We then iterate through each amount `a` from 1 to `amount`. For each amount `a`, we iterate through our available `coins`. If a coin `c` is less than or equal to `a`, we can potentially use it. The number of coins required would be `1 + dp[a - c]`. We want the minimum, so we update `dp[a]` with `min(dp[a], 1 + dp[a - c])`. After filling the entire DP array, `dp[amount]` will hold our answer. If it's still the large initial value, the amount is impossible to make.",
+                    "code": {
+                        "python": "class Solution:\n    def coinChange(self, coins: list[int], amount: int) -> int:\n        dp = [amount + 1] * (amount + 1)\n        dp[0] = 0\n\n        for a in range(1, amount + 1):\n            for c in coins:\n                if a - c >= 0:\n                    dp[a] = min(dp[a], 1 + dp[a - c])\n        \n        return dp[amount] if dp[amount] != amount + 1 else -1"
+                    }
+                }
+            },
+            {
+                "id": 152,
+                "title": "Maximum Product Subarray",
+                "leetcode_url": "https://leetcode.com/problems/maximum-product-subarray/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/maximum-product-subarray"
+                },
+                "youtube_id": "lXVy6YWFcRM",
+                "hints": [
+                    "This problem is similar to Kadane's algorithm for Maximum Sum Subarray, but with a twist.",
+                    "The main complication is negative numbers. A negative number multiplied by another negative number becomes positive. This means you need to track both the maximum and minimum product ending at the current position.",
+                    "A zero in the array will reset the product, effectively starting a new subarray."
+                ],
+                "solution": {
+                    "explanation": "This can be solved with a dynamic programming approach in a single pass. The challenge comes from negative numbers, as the minimum product subarray can become the maximum product if multiplied by another negative number. Therefore, at each position, we need to keep track of both the maximum product subarray ending at that position (`curMax`) and the minimum product subarray ending at that position (`curMin`). We initialize a global `res` with the maximum value in the array. We then iterate through the numbers. For each number `n`, we calculate the potential new `curMax` and `curMin`. The new `curMax` is the maximum of `n` itself, `n` multiplied by the old `curMax`, and `n` multiplied by the old `curMin`. The same logic applies to the new `curMin`, but taking the minimum. If we encounter a zero, it breaks any existing product chain, so we reset `curMax` and `curMin` to 1. At each step, we update our global `res` with the current `curMax`.",
+                    "code": {
+                        "python": "class Solution:\n    def maxProduct(self, nums: list[int]) -> int:\n        res = max(nums)\n        curMin, curMax = 1, 1\n\n        for n in nums:\n            if n == 0:\n                curMin, curMax = 1, 1\n                continue\n            \n            tmp = curMax * n\n            curMax = max(n * curMax, n * curMin, n)\n            curMin = min(tmp, n * curMin, n)\n            \n            res = max(res, curMax)\n        return res"
+                    }
+                }
+            },
+            {
+                "id": 139,
+                "title": "Word Break",
+                "leetcode_url": "https://leetcode.com/problems/word-break/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/word-break"
+                },
+                "youtube_id": "Sx9NNgInc3A",
+                "hints": [
+                    "This is a dynamic programming problem.",
+                    "Let `dp[i]` be a boolean indicating whether the substring `s[0...i-1]` can be segmented. To compute `dp[i]`, you need to check if there's a `j < i` such that `dp[j]` is true and the substring `s[j...i-1]` is a word in the dictionary."
+                ],
+                "solution": {
+                    "explanation": "We can solve this using bottom-up dynamic programming. We create a DP array, `dp`, of size `len(s) + 1`, where `dp[i]` represents whether the prefix of `s` of length `i` can be segmented. We initialize `dp[0] = True` because an empty string can always be formed. We then iterate from `i = 1` to `len(s)`. For each `i`, we iterate backwards from `j = i - 1` to 0. In this inner loop, we consider the substring `s[j:i]`. If `dp[j]` is `True` (meaning the prefix `s[0:j]` can be formed) AND the substring `s[j:i]` is in our `wordDict`, it means we can successfully form the prefix `s[0:i]`. So, we set `dp[i] = True` and can break the inner loop. The final answer is the value of `dp[len(s)]`.",
+                    "code": {
+                        "python": "class Solution:\n    def wordBreak(self, s: str, wordDict: list[str]) -> bool:\n        dp = [False] * (len(s) + 1)\n        dp[len(s)] = True\n\n        for i in range(len(s) - 1, -1, -1):\n            for w in wordDict:\n                if (i + len(w)) <= len(s) and s[i : i + len(w)] == w:\n                    dp[i] = dp[i + len(w)]\n                if dp[i]:\n                    break\n        return dp[0]"
+                    }
+                }
+            },
+            {
+                "id": 300,
+                "title": "Longest Increasing Subsequence",
+                "leetcode_url": "https://leetcode.com/problems/longest-increasing-subsequence/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/longest-increasing-subsequence"
+                },
+                "youtube_id": "cjWnW0hdF1Y",
+                "hints": [
+                    "A classic DP solution involves an O(n^2) approach where `dp[i]` is the length of the LIS ending at index `i`.",
+                    "A more clever O(n log n) solution exists. It involves maintaining a sorted list of the smallest tail of all increasing subsequences of various lengths."
+                ],
+                "solution": {
+                    "explanation": "A very clever O(n log n) solution exists for this problem. We maintain an array (let's call it `sub`) which stores the smallest tail of all increasing subsequences with length `i+1`. We iterate through the input `nums`. For each number `n`, we try to place it into our `sub` array. If `n` is greater than all elements in `sub`, it means we can extend the longest subsequence found so far, so we append `n` to `sub`. If `n` is not greater than all elements, it means it can potentially be a new, smaller tail for an existing subsequence length, making it possible to build future subsequences more easily. We find the first element in `sub` that is greater than or equal to `n` and replace it with `n`. This can be done efficiently with a binary search. The final answer is the length of this `sub` array.",
+                    "code": {
+                        "python": "class Solution:\n    def lengthOfLIS(self, nums: list[int]) -> int:\n        tails = []\n        for num in nums:\n            if not tails or num > tails[-1]:\n                tails.append(num)\n            else:\n                l, r = 0, len(tails) - 1\n                while l <= r:\n                    m = (l + r) // 2\n                    if tails[m] < num:\n                        l = m + 1\n                    else:\n                        r = m - 1\n                tails[l] = num\n        return len(tails)"
+                    }
+                }
+            },
+            {
+                "id": 416,
+                "title": "Partition Equal Subset Sum",
+                "leetcode_url": "https://leetcode.com/problems/partition-equal-subset-sum/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/partition-equal-subset-sum"
+                },
+                "youtube_id": "IsvocB5BJhw"
             }
         ],
         "2-D Dynamic Programming": [
@@ -2045,26 +2234,6 @@
                     "explanation": "We can solve this using bottom-up 2D dynamic programming. We create a DP grid of size `(len(text1)+1) x (len(text2)+1)`. `dp[i][j]` will store the length of the longest common subsequence between the prefixes `text1[:i]` and `text2[:j]`. We iterate through the grid. For each cell `(i, j)`, we compare `text1[i-1]` and `text2[j-1]`. If the characters are the same, it means they can extend the common subsequence, so `dp[i][j] = 1 + dp[i-1][j-1]`. If they are different, we can't extend the subsequence with both characters, so we must take the best result from the previous states, which is `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`. The final answer will be in the bottom-right cell of the grid, `dp[len(text1)][len(text2)]`. We can optimize space to O(n) by only keeping track of the previous and current DP rows.",
                     "code": {
                         "python": "class Solution:\n    def longestCommonSubsequence(self, text1: str, text2: str) -> int:\n        dp = [[0 for j in range(len(text2) + 1)] for i in range(len(text1) + 1)]\n\n        for i in range(len(text1) -1, -1, -1):\n            for j in range(len(text2) - 1, -1, -1):\n                if text1[i] == text2[j]:\n                    dp[i][j] = 1 + dp[i+1][j+1]\n                else:\n                    dp[i][j] = max(dp[i+1][j], dp[i][j+1])\n        return dp[0][0]"
-                    }
-                }
-            },
-            {
-                "id": 72,
-                "title": "Edit Distance",
-                "leetcode_url": "https://leetcode.com/problems/edit-distance/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/edit-distance"
-                },
-                "youtube_id": "XYi2-Lprwm4",
-                "hints": [
-                    "This is a classic 2D dynamic programming problem.",
-                    "Let `dp[i][j]` be the minimum number of operations to convert `word1[0...i-1]` to `word2[0...j-1]`. Consider the three possible operations (insert, delete, replace) to find the recurrence relation."
-                ],
-                "solution": {
-                    "explanation": "To find the minimum edit distance, we use 2D dynamic programming. We create a DP grid `dp` where `dp[i][j]` is the minimum cost to convert the prefix `word1[:i]` to `word2[:j]`. The base cases are the first row and column, which represent the cost of converting a prefix to an empty string (by deletion) or an empty string to a prefix (by insertion). We then iterate through the rest of the grid. For any cell `dp[i][j]`, if the characters `word1[i-1]` and `word2[j-1]` are the same, no operation is needed, so `dp[i][j] = dp[i-1][j-1]`. If they are different, we must perform an operation. We take the minimum of the three possible actions: 1. Replace (`dp[i-1][j-1] + 1`), 2. Delete (`dp[i-1][j] + 1`), 3. Insert (`dp[i][j-1] + 1`). The final answer is in the bottom-right cell `dp[len(word1)][len(word2)]`.",
-                    "code": {
-                        "python": "class Solution:\n    def minDistance(self, word1: str, word2: str) -> int:\n        dp = [[float(\"inf\")] * (len(word2) + 1) for i in range(len(word1) + 1)]\n\n        for j in range(len(word2) + 1):\n            dp[len(word1)][j] = len(word2) - j\n        for i in range(len(word1) + 1):\n            dp[i][len(word2)] = len(word1) - i\n\n        for i in range(len(word1) - 1, -1, -1):\n            for j in range(len(word2) - 1, -1, -1):\n                if word1[i] == word2[j]:\n                    dp[i][j] = dp[i+1][j+1]\n                else:\n                    dp[i][j] = 1 + min(dp[i+1][j], dp[i][j+1], dp[i+1][j+1])\n        return dp[0][0]"
                     }
                 }
             },
@@ -2129,6 +2298,99 @@
                 }
             },
             {
+                "id": 97,
+                "title": "Interleaving String",
+                "leetcode_url": "https://leetcode.com/problems/interleaving-string/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/interleaving-string"
+                },
+                "youtube_id": "3kata4_LAnQ",
+                "hints": [
+                    "This is a classic 2D dynamic programming problem.",
+                    "Let `dp[i][j]` be a boolean indicating if `s3` up to index `i+j` can be formed by an interleaving of `s1` up to index `i` and `s2` up to index `j`.",
+                    "The value of `dp[i][j]` depends on whether `s3[i+j-1]` matches `s1[i-1]` (checking `dp[i-1][j]`) or `s2[j-1]` (checking `dp[i][j-1]`)."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved efficiently with 2D dynamic programming. A crucial first check is if the lengths of `s1` and `s2` sum up to the length of `s3`. If not, it's impossible, so we return `False`. We can use either a bottom-up DP table or top-down recursion with memoization. For a top-down approach, we define a function `dfs(i, j)` that checks if the suffix `s3[i+j:]` can be formed by `s1[i:]` and `s2[j:]`. The base case is when we have exhausted all three strings (`i`, `j`, and `i+j` are out of bounds), which is a successful match. In the recursive step, we have two choices: \n1. If the character `s1[i]` matches the character `s3[i+j]`, we can try to use it and make a recursive call `dfs(i + 1, j)`. \n2. If the character `s2[j]` matches `s3[i+j]`, we can try to use it and make a recursive call `dfs(i, j + 1)`. \nIf either of these paths returns `True`, then the current state is a valid interleaving. We use a cache (memoization) on the state `(i, j)` to avoid recomputing the same subproblems.",
+                    "code": {
+                        "python": "class Solution:\n    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:\n        if len(s1) + len(s2) != len(s3):\n            return False\n        \n        dp = {}\n\n        def dfs(i, j):\n            if i == len(s1) and j == len(s2):\n                return True\n            if (i, j) in dp:\n                return dp[(i, j)]\n\n            if i < len(s1) and s1[i] == s3[i + j] and dfs(i + 1, j):\n                return True\n            if j < len(s2) and s2[j] == s3[i + j] and dfs(i, j + 1):\n                return True\n            \n            dp[(i, j)] = False\n            return False\n\n        return dfs(0, 0)"
+                    }
+                }
+            },
+            {
+                "id": 329,
+                "title": "Longest Increasing Path in a Matrix",
+                "leetcode_url": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/longest-increasing-path-in-a-matrix"
+                },
+                "youtube_id": "uG_MtaCJIrM"
+            },
+            {
+                "id": 115,
+                "title": "Distinct Subsequences",
+                "leetcode_url": "https://leetcode.com/problems/distinct-subsequences/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/distinct-subsequences"
+                },
+                "youtube_id": "b_U3Q_o_B0A",
+                "hints": [
+                    "This is a 2D dynamic programming problem.",
+                    "Let `dp[i][j]` represent the number of distinct subsequences of `s[i:]` which equals `t[j:]`.",
+                    "If `s[i] == t[j]`, the result is the sum of two possibilities: matching `t[j]` with `s[i]` and not matching. If they are different, you can only not match."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved with 2D dynamic programming using memoization. We define a recursive function, `dfs(i, j)`, that computes the number of distinct subsequences of `s[i:]` that can form the string `t[j:]`. The base cases are: 1. If `j` reaches the end of `t`, we have successfully formed the subsequence, so we return 1. 2. If `i` reaches the end of `s` but `j` has not, it's impossible to form the rest of `t`, so we return 0. The recursive step has two main scenarios: \n- If `s[i] == t[j]`, we have two choices: we can either use the character `s[i]` to match `t[j]` and look for the rest of `t` from `j+1` in the rest of `s` from `i+1` (`dfs(i+1, j+1)`), OR we can skip `s[i]` and try to form `t[j:]` from the rest of `s` (`dfs(i+1, j)`). We sum these two possibilities. \n- If `s[i] != t[j]`, our only choice is to skip `s[i]` and try to form `t[j:]` from the rest of `s`, which is just `dfs(i+1, j)`. \nWe use a cache on the state `(i, j)` to store the results and avoid re-computation.",
+                    "code": {
+                        "python": "class Solution:\n    def numDistinct(self, s: str, t: str) -> int:\n        cache = {}\n\n        def dfs(i, j):\n            if j == len(t):\n                return 1\n            if i == len(s):\n                return 0\n            if (i, j) in cache:\n                return cache[(i, j)]\n\n            if s[i] == t[j]:\n                cache[(i, j)] = dfs(i + 1, j + 1) + dfs(i + 1, j)\n            else:\n                cache[(i, j)] = dfs(i + 1, j)\n            return cache[(i, j)]\n\n        return dfs(0, 0)"
+                    }
+                }
+            },
+            {
+                "id": 72,
+                "title": "Edit Distance",
+                "leetcode_url": "https://leetcode.com/problems/edit-distance/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/edit-distance"
+                },
+                "youtube_id": "XYi2-Lprwm4",
+                "hints": [
+                    "This is a classic 2D dynamic programming problem.",
+                    "Let `dp[i][j]` be the minimum number of operations to convert `word1[0...i-1]` to `word2[0...j-1]`. Consider the three possible operations (insert, delete, replace) to find the recurrence relation."
+                ],
+                "solution": {
+                    "explanation": "To find the minimum edit distance, we use 2D dynamic programming. We create a DP grid `dp` where `dp[i][j]` is the minimum cost to convert the prefix `word1[:i]` to `word2[:j]`. The base cases are the first row and column, which represent the cost of converting a prefix to an empty string (by deletion) or an empty string to a prefix (by insertion). We then iterate through the rest of the grid. For any cell `dp[i][j]`, if the characters `word1[i-1]` and `word2[j-1]` are the same, no operation is needed, so `dp[i][j] = dp[i-1][j-1]`. If they are different, we must perform an operation. We take the minimum of the three possible actions: 1. Replace (`dp[i-1][j-1] + 1`), 2. Delete (`dp[i-1][j] + 1`), 3. Insert (`dp[i][j-1] + 1`). The final answer is in the bottom-right cell `dp[len(word1)][len(word2)]`.",
+                    "code": {
+                        "python": "class Solution:\n    def minDistance(self, word1: str, word2: str) -> int:\n        dp = [[float(\"inf\")] * (len(word2) + 1) for i in range(len(word1) + 1)]\n\n        for j in range(len(word2) + 1):\n            dp[len(word1)][j] = len(word2) - j\n        for i in range(len(word1) + 1):\n            dp[i][len(word2)] = len(word1) - i\n\n        for i in range(len(word1) - 1, -1, -1):\n            for j in range(len(word2) - 1, -1, -1):\n                if word1[i] == word2[j]:\n                    dp[i][j] = dp[i+1][j+1]\n                else:\n                    dp[i][j] = 1 + min(dp[i+1][j], dp[i][j+1], dp[i+1][j+1])\n        return dp[0][0]"
+                    }
+                }
+            },
+            {
+                "id": 312,
+                "title": "Burst Balloons",
+                "leetcode_url": "https://leetcode.com/problems/burst-balloons/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/burst-balloons"
+                },
+                "youtube_id": "VFskby7lUbw",
+                "hints": [
+                    "This is a challenging dynamic programming problem.",
+                    "Thinking about which balloon to burst *first* is difficult because it affects the neighbors of all subsequent bursts.",
+                    "The key insight is to think about which balloon to burst *last*. If you decide to burst balloon `i` last within a range `[l, r]`, the problem breaks down into two independent subproblems: `(l, i)` and `(i, r)`, because the `l` and `r` balloons will be adjacent to `i` at the moment of its burst."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved with dynamic programming, but the state is tricky. Instead of thinking about which balloon to burst first, we reframe it to: which balloon is the *last* one to be burst in a given interval? Let's define a function `dfs(l, r)` that computes the maximum coins we can obtain from bursting all balloons in the interval `(l, r)` (exclusive). To make boundary calculations easier, we first pad the `nums` array with 1s at both ends. The base case for the recursion is when `l > r`, which means there are no balloons to burst, returning 0. For a given range `(l, r)`, we iterate through every possible balloon `i` from `l` to `r` and consider it as the last one to be burst in this range. When `i` is the last one burst, its neighbors will be the boundary balloons `l-1` and `r+1`. The coins gained from this last burst are `nums[l-1] * nums[i] * nums[r+1]`. The total coins for this choice is this value plus the coins from the now-independent subproblems `dfs(l, i-1)` and `dfs(i+1, r)`. We take the maximum over all choices of `i`. We use a cache (memoization) on the state `(l, r)` to avoid re-computing results.",
+                    "code": {
+                        "python": "class Solution:\n    def maxCoins(self, nums: list[int]) -> int:\n        nums = [1] + nums + [1]\n        dp = {}\n\n        def dfs(l, r):\n            if l > r:\n                return 0\n            if (l, r) in dp:\n                return dp[(l, r)]\n\n            dp[(l, r)] = 0\n            for i in range(l, r + 1):\n                coins = nums[l - 1] * nums[i] * nums[r + 1]\n                coins += dfs(l, i - 1) + dfs(i + 1, r)\n                dp[(l, r)] = max(dp[(l, r)], coins)\n            return dp[(l, r)]\n\n        return dfs(1, len(nums) - 2)"
+                    }
+                }
+            },
+            {
                 "id": 10,
                 "title": "Regular Expression Matching",
                 "leetcode_url": "https://leetcode.com/problems/regular-expression-matching/",
@@ -2147,139 +2409,29 @@
                         "python": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        cache = {}\n\n        def dfs(i, j):\n            if (i, j) in cache:\n                return cache[(i, j)]\n            if i >= len(s) and j >= len(p):\n                return True\n            if j >= len(p):\n                return False\n\n            match = i < len(s) and (s[i] == p[j] or p[j] == \".\")\n\n            if (j + 1) < len(p) and p[j+1] == \"*\":\n                cache[(i,j)] = (dfs(i, j + 2) or       # don't use *\n                                (match and dfs(i + 1, j))) # use *\n                return cache[(i,j)]\n            \n            if match:\n                cache[(i,j)] = dfs(i + 1, j + 1)\n                return cache[(i,j)]\n            \n            cache[(i,j)] = False\n            return False\n        \n        return dfs(0, 0)"
                     }
                 }
-            },
-            {
-                "id": 44,
-                "title": "Wildcard Matching",
-                "leetcode_url": "https://leetcode.com/problems/wildcard-matching/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/wildcard-matching"
-                },
-                "youtube_id": "NPr9o2odG8A",
-                "hints": [
-                    "This is similar to 'Regular Expression Matching' and can be solved with 2D DP.",
-                    "The `*` wildcard is the tricky part. It can match any sequence of characters (including an empty sequence). This means if `p[j]` is `*`, you can either ignore it and match `s` with `p[j+1]`, or match one character of `s` with `*` and continue matching `s[i+1]` with `p[j]`."
-                ],
-                "solution": {
-                    "explanation": "This problem can be solved using 2D dynamic programming. We create a DP table `dp` where `dp[i][j]` is a boolean indicating if the first `i` characters of `s` match the first `j` characters of `p`. We iterate through the string and pattern. If `s[i-1] == p[j-1]` or `p[j-1] == '?'`, the match depends on the previous state `dp[i-1][j-1]`. If `p[j-1] == '*'`, it can match an empty sequence (in which case `dp[i][j]` depends on `dp[i][j-1]`) or it can match one or more characters (in which case `dp[i][j]` depends on `dp[i-1][j]`). The base case `dp[0][0]` is `True`. We also need to handle leading `*`s in the pattern, which can match an empty string.",
-                    "code": {
-                        "python": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        dp = [[False] * (len(p) + 1) for i in range(len(s) + 1)]\n        dp[len(s)][len(p)] = True\n\n        for i in range(len(s), -1, -1):\n            for j in range(len(p) - 1, -1, -1):\n                match = i < len(s) and (s[i] == p[j] or p[j] == \"?\")\n\n                if p[j] == \"*\":\n                    dp[i][j] = dp[i][j+1] or (i < len(s) and dp[i+1][j])\n                elif match:\n                    dp[i][j] = dp[i+1][j+1]\n        return dp[0][0]"
-                    }
-                }
-            },
-            {
-                "id": 887,
-                "title": "Super Egg Drop",
-                "leetcode_url": "https://leetcode.com/problems/super-egg-drop/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/super-egg-drop"
-                },
-                "youtube_id": "2z-A2T-1uhc",
-                "hints": [
-                    "This is a very challenging dynamic programming problem.",
-                    "Let `dp[k][m]` be the maximum number of floors you can check with `k` eggs and `m` moves. `dp[k][m] = 1 + dp[k-1][m-1] + dp[k][m-1]`. The first term is the floor you drop from, the second is if it breaks, the third is if it doesn't."
-                ],
-                "solution": {
-                    "explanation": "Instead of asking 'what is the minimum moves for K eggs and N floors', the DP state is more intuitive if we ask 'what is the maximum number of floors we can check given K eggs and M moves?'. Let `dp[m][k]` be this maximum number of floors. If we make a move from some floor, the egg either breaks or it doesn't. If it breaks, we have `k-1` eggs and `m-1` moves left, allowing us to check `dp[m-1][k-1]` floors below. If it doesn't break, we have `k` eggs and `m-1` moves left, allowing us to check `dp[m-1][k]` floors above. So, `dp[m][k] = 1 (current floor) + dp[m-1][k-1] + dp[m-1][k]`. We can build this DP table and find the first number of moves `m` for which `dp[m][K] >= N`.",
-                    "code": {
-                        "python": "class Solution:\n    def superEggDrop(self, k: int, n: int) -> int:\n        dp = [[0] * (k + 1) for i in range(n + 1)]\n        for m in range(1, n + 1):\n            for j in range(1, k + 1):\n                dp[m][j] = 1 + dp[m-1][j-1] + dp[m-1][j]\n            if dp[m][k] >= n:\n                return m\n        return n"
-                    }
-                }
-            },
-            {
-                "id": 132,
-                "title": "Palindrome Partitioning II",
-                "leetcode_url": "https://leetcode.com/problems/palindrome-partitioning-ii/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/palindrome-partitioning-ii/solutions/133320/python-dp-solution/"
-                },
-                "youtube_id": "lU4-jak_A4k",
-                "hints": [
-                    "This is a dynamic programming problem. Let `dp[i]` be the minimum number of cuts needed for the substring `s[:i]`.",
-                    "You'll likely need another DP table to pre-calculate whether any given substring `s[j:i]` is a palindrome to avoid re-computing it every time."
-                ],
-                "solution": {
-                    "explanation": "This problem asks for the minimum cuts, which suggests a dynamic programming approach. Let `cuts[i]` be the minimum number of cuts for the prefix `s[:i]`. To compute `cuts[i]`, we can iterate from `j = 0` to `i-1`. If the substring `s[j:i]` is a palindrome, it means we can potentially make a cut at `j-1`. The number of cuts would then be `cuts[j] + 1`. We want the minimum over all possible `j`. A key optimization is to pre-compute all possible palindromic substrings. We can use a 2D DP table, `isPalindrome[i][j]`, which is true if `s[i:j+1]` is a palindrome. This avoids checking for palindromes repeatedly inside our main DP loop, improving the time complexity.",
-                    "code": {
-                        "python": "class Solution:\n    def minCut(self, s: str) -> int:\n        n = len(s)\n        # isPalindrome[i][j] is True if s[i:j+1] is a palindrome\n        isPalindrome = [[False] * n for _ in range(n)]\n        for i in range(n):\n            isPalindrome[i][i] = True\n        for length in range(2, n + 1):\n            for i in range(n - length + 1):\n                j = i + length - 1\n                if length == 2:\n                    isPalindrome[i][j] = (s[i] == s[j])\n                else:\n                    isPalindrome[i][j] = (s[i] == s[j] and isPalindrome[i+1][j-1])\n\n        # cuts[i] is the minimum cuts for s[:i+1]\n        cuts = [i for i in range(n)]\n        for i in range(1, n):\n            if isPalindrome[0][i]:\n                cuts[i] = 0\n            else:\n                for j in range(i):\n                    if isPalindrome[j+1][i]:\n                        cuts[i] = min(cuts[i], cuts[j] + 1)\n        return cuts[n-1]"
-                    }
-                }
-            },
-            {
-                "id": 123,
-                "title": "Best Time to Buy and Sell Stock III",
-                "leetcode_url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/solutions/39611/is-it-best-solution-with-o-n-o-1/"
-                },
-                "youtube_id": "pTQB9wbIpfU",
-                "hints": [
-                    "You can complete at most two transactions.",
-                    "This can be modeled with states. You need to track the maximum profit after: your first buy, your first sell, your second buy, and your second sell."
-                ],
-                "solution": {
-                    "explanation": "This problem can be solved by tracking the maximum profit at each of four state transitions. We iterate through the prices and maintain four variables: `buy1` (max profit after one buy), `sell1` (max profit after one buy and one sell), `buy2` (max profit after a second buy), and `sell2` (max profit after a second buy and second sell). For each price `p`: \n1. `buy1` is the max of its old value and `-p` (the cost of the first buy). \n2. `sell1` is the max of its old value and `buy1 + p` (selling the first stock). \n3. `buy2` is the max of its old value and `sell1 - p` (using profits from the first sale to buy a second stock). \n4. `sell2` is the max of its old value and `buy2 + p` (selling the second stock). \nBy iterating through the prices and updating these four states, `sell2` will hold the maximum profit after at most two transactions.",
-                    "code": {
-                        "python": "class Solution:\n    def maxProfit(self, prices: list[int]) -> int:\n        buy1, sell1 = float('-inf'), 0\n        buy2, sell2 = float('-inf'), 0\n\n        for price in prices:\n            buy1 = max(buy1, -price)\n            sell1 = max(sell1, buy1 + price)\n            buy2 = max(buy2, sell1 - price)\n            sell2 = max(sell2, buy2 + price)\n        \n        return sell2"
-                    }
-                }
-            },
-            {
-                "id": 188,
-                "title": "Best Time to Buy and Sell Stock IV",
-                "leetcode_url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/solutions/54113/a-concise-dp-solution-in-java/"
-                },
-                "youtube_id": "oDhu5uGq_ic",
-                "hints": [
-                    "This is a generalization of the previous 'Best Time to Buy and Sell Stock' problems.",
-                    "Use dynamic programming. Let `dp[i][j]` be the maximum profit on day `j` with at most `i` transactions. This can be optimized to 1D DP arrays for 'buy' and 'sell' states."
-                ],
-                "solution": {
-                    "explanation": "This problem generalizes the previous stock problems to `k` transactions. We can use dynamic programming. First, there's a quick optimization: if `k` is greater than or equal to half the number of days, we can make as many transactions as we want. In this case, we can simply sum up all positive price differences (`prices[i] - prices[i-1]`). For the general case, we use two arrays, `buy` and `sell`, both of size `k+1`. `buy[i]` will store the maximum profit after `i` buys, and `sell[i]` will be the max profit after `i` sells. We iterate through each `price`. For each `i` from 1 to `k`, we update `buy[i]` (max of its old value and `sell[i-1] - price`) and `sell[i]` (max of its old value and `buy[i] + price`). After iterating through all prices, `sell[k]` will contain the maximum profit with at most `k` transactions.",
-                    "code": {
-                        "python": "class Solution:\n    def maxProfit(self, k: int, prices: list[int]) -> int:\n        n = len(prices)\n        if n < 2:\n            return 0\n\n        # Optimization for unlimited transactions\n        if k >= n // 2:\n            max_profit = 0\n            for i in range(1, n):\n                if prices[i] > prices[i-1]:\n                    max_profit += prices[i] - prices[i-1]\n            return max_profit\n\n        buy = [-float('inf')] * (k + 1)\n        sell = [0] * (k + 1)\n\n        for price in prices:\n            for i in range(1, k + 1):\n                buy[i] = max(buy[i], sell[i-1] - price)\n                sell[i] = max(sell[i], buy[i] + price)\n\n        return sell[k]"
-                    }
-                }
-            },
-            {
-                "id": 688,
-                "title": "Knight Probability in Chessboard",
-                "leetcode_url": "https://leetcode.com/problems/knight-probability-in-chessboard/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/knight-probability-in-chessboard/solutions/113856/9-lines-python-dp-solution/"
-                },
-                "youtube_id": "54n_yA2H7qI"
-            },
-            {
-                "id": 879,
-                "title": "Profitable Schemes",
-                "leetcode_url": "https://leetcode.com/problems/profitable-schemes/",
-                "solution_link": {
-                    "text": "LeetCode Discussion Solution",
-                    "url": "https://leetcode.com/problems/profitable-schemes/solutions/159805/c-java-python-dp/"
-                },
-                "youtube_id": "T0t_c2_2jTU"
-            },
-            {
-                "id": 329,
-                "title": "Longest Increasing Path in a Matrix",
-                "leetcode_url": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/longest-increasing-path-in-a-matrix"
-                },
-                "youtube_id": "uG_MtaCJIrM"
             }
         ],
         "Greedy": [
+            {
+                "id": 53,
+                "title": "Maximum Subarray",
+                "leetcode_url": "https://leetcode.com/problems/maximum-subarray/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/maximum-subarray"
+                },
+                "youtube_id": "5PAs-5L63_k",
+                "hints": [
+                    "This is a classic problem that can be solved with Kadane's Algorithm.",
+                    "Iterate through the array, keeping track of the `current_sum` of the subarray ending at the current position. If `current_sum` ever becomes negative, reset it to zero."
+                ],
+                "solution": {
+                    "explanation": "Kadane's Algorithm provides a linear-time solution. We iterate through the array while maintaining two variables: `maxSub`, which stores the maximum subarray sum found so far, and `curSum`, which stores the sum of the current subarray we are considering. For each number in the array, we add it to `curSum`. We then update `maxSub` with the maximum of its current value and `curSum`. The crucial step is: if `curSum` becomes negative, it means the current subarray is a burden and will not contribute positively to any future subarray. Therefore, we reset `curSum` to 0 and start a new subarray from the next element. This greedy approach ensures we find the maximum possible sum.",
+                    "code": {
+                        "python": "class Solution:\n    def maxSubArray(self, nums: list[int]) -> int:\n        maxSub = nums[0]\n        curSum = 0\n        \n        for n in nums:\n            if curSum < 0:\n                curSum = 0\n            curSum += n\n            maxSub = max(maxSub, curSum)\n        return maxSub"
+                    }
+                }
+            },
             {
                 "id": 55,
                 "title": "Jump Game",
@@ -2321,36 +2473,6 @@
                 }
             },
             {
-                "id": 53,
-                "title": "Maximum Subarray",
-                "leetcode_url": "https://leetcode.com/problems/maximum-subarray/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/maximum-subarray"
-                },
-                "youtube_id": "5PAs-5L63_k",
-                "hints": [
-                    "This is a classic problem that can be solved with Kadane's Algorithm.",
-                    "Iterate through the array, keeping track of the `current_sum` of the subarray ending at the current position. If `current_sum` ever becomes negative, reset it to zero."
-                ],
-                "solution": {
-                    "explanation": "Kadane's Algorithm provides a linear-time solution. We iterate through the array while maintaining two variables: `maxSub`, which stores the maximum subarray sum found so far, and `curSum`, which stores the sum of the current subarray we are considering. For each number in the array, we add it to `curSum`. We then update `maxSub` with the maximum of its current value and `curSum`. The crucial step is: if `curSum` becomes negative, it means the current subarray is a burden and will not contribute positively to any future subarray. Therefore, we reset `curSum` to 0 and start a new subarray from the next element. This greedy approach ensures we find the maximum possible sum.",
-                    "code": {
-                        "python": "class Solution:\n    def maxSubArray(self, nums: list[int]) -> int:\n        maxSub = nums[0]\n        curSum = 0\n        \n        for n in nums:\n            if curSum < 0:\n                curSum = 0\n            curSum += n\n            maxSub = max(maxSub, curSum)\n        return maxSub"
-                    }
-                }
-            },
-            {
-                "id": 871,
-                "title": "Minimum Number of Refueling Stops",
-                "leetcode_url": "https://leetcode.com/problems/minimum-number-of-refueling-stops/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/minimum-number-of-refueling-stops"
-                },
-                "youtube_id": "OpC1__pT0fg"
-            },
-            {
                 "id": 134,
                 "title": "Gas Station",
                 "leetcode_url": "https://leetcode.com/problems/gas-station/",
@@ -2371,62 +2493,44 @@
                 }
             },
             {
-                "id": 57,
-                "title": "Insert Interval",
-                "leetcode_url": "https://leetcode.com/problems/insert-interval/",
+                "id": 846,
+                "title": "Hand of Straights",
+                "leetcode_url": "https://leetcode.com/problems/hand-of-straights/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/insert-interval"
+                    "url": "https://neetcode.io/solutions/hand-of-straights"
                 },
-                "youtube_id": "A8NUOmlwOlM",
+                "youtube_id": "_x-094o5r_Q",
                 "hints": [
-                    "The initial list of intervals is sorted and non-overlapping.",
-                    "Iterate through the intervals and categorize them into three groups: those that come completely before the new interval, those that overlap with it, and those that come completely after."
+                    "A greedy approach is effective here. To form a straight, you need consecutive cards. How can you always ensure you are starting a new straight with the smallest possible card?",
+                    "Use a hash map to count the frequency of each card. A min-heap can then be used to efficiently retrieve the smallest card number currently available.",
+                    "When you start a new straight with the smallest card `c`, you must greedily check if `c+1`, `c+2`, ..., `c+groupSize-1` are all available in sufficient quantities."
                 ],
                 "solution": {
-                    "explanation": "We can solve this by iterating through the existing intervals and building a new result list. We handle three cases. First, we add all intervals that end before our `newInterval` starts; these do not overlap and come first. Second, we handle the overlapping intervals. We iterate through all intervals that overlap with `newInterval`. As we do, we continuously merge them with `newInterval` by updating the start of `newInterval` to be the minimum of the starts, and the end to be the maximum of the ends. After this loop, `newInterval` will have become a single, large merged interval. We add this merged interval to our result. Finally, we add all the remaining intervals, which are the ones that start after our merged interval ends. These also do not overlap and come last.",
+                    "explanation": "This problem can be solved greedily. First, if the total number of cards is not divisible by `groupSize`, it's impossible to partition them, so we return `False`. We then use a hash map to count the frequency of each card. To ensure we always start forming a straight with the smallest available card, we create a min-heap from the unique keys of our card counter. The main loop continues as long as the min-heap is not empty. In each iteration, we get the smallest card `first` from the top of the heap. We then try to form a valid straight of `groupSize` starting from `first`. We loop from `i = first` to `first + groupSize - 1`. For each required card `i`, we check if it's available in our frequency map. If not, a straight cannot be formed, so we return `False`. If it is available, we decrement its count. If a card's count becomes zero, we must check if it's the current smallest card at the top of the heap. If it is, we pop it. If it's not, it means there's a 'gap' in our hand, and the structure is impossible. If the main loop completes, all cards have been successfully grouped.",
                     "code": {
-                        "python": "class Solution:\n    def insert(self, intervals: list[list[int]], newInterval: list[int]) -> list[list[int]]:\n        res = []\n\n        for i in range(len(intervals)):\n            if newInterval[1] < intervals[i][0]:\n                res.append(newInterval)\n                return res + intervals[i:]\n            elif newInterval[0] > intervals[i][1]:\n                res.append(intervals[i])\n            else:\n                newInterval = [min(newInterval[0], intervals[i][0]), max(newInterval[1], intervals[i][1])]\n        \n        res.append(newInterval)\n        return res"
+                        "python": "import heapq\n\nclass Solution:\n    def isNStraightHand(self, hand: list[int], groupSize: int) -> bool:\n        if len(hand) % groupSize != 0:\n            return False\n        \n        count = {}\n        for n in hand:\n            count[n] = 1 + count.get(n, 0)\n\n        minH = list(count.keys())\n        heapq.heapify(minH)\n        \n        while minH:\n            first = minH[0]\n\n            for i in range(first, first + groupSize):\n                if i not in count:\n                    return False\n                count[i] -= 1\n                if count[i] == 0:\n                    if i != minH[0]:\n                        return False\n                    heapq.heappop(minH)\n        return True"
                     }
                 }
             },
             {
-                "id": 56,
-                "title": "Merge Intervals",
-                "leetcode_url": "https://leetcode.com/problems/merge-intervals/",
+                "id": 1889,
+                "title": "Merge Triplets to Form Target Triplet",
+                "leetcode_url": "https://leetcode.com/problems/merge-triplets-to-form-target-triplet/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/merge-intervals"
+                    "url": "https://neetcode.io/solutions/merge-triplets-to-form-target-triplet"
                 },
-                "youtube_id": "44H3cEC2fFM",
+                "youtube_id": "kShS2pS_S94",
                 "hints": [
-                    "First, sort the intervals based on their start times.",
-                    "Iterate through the sorted intervals and maintain a `merged` list. If the current interval overlaps with the last interval in `merged`, merge them. Otherwise, append the current interval to `merged`."
+                    "A greedy approach works best. We want to see if it's possible to construct the target triplet.",
+                    "Any triplet that contains a value larger than the corresponding value in the target triplet is unusable. You can filter these out first.",
+                    "After filtering, you just need to check if the remaining triplets collectively contain all the values of the target triplet at their respective positions."
                 ],
                 "solution": {
-                    "explanation": "To merge overlapping intervals, we first need to sort them based on their start times. This ensures that we can process them in a sequential order. We initialize our `output` list with the first interval. Then, we iterate through the rest of the sorted intervals. For each `current_interval`, we compare it with the `last_interval` in our `output` list. If the start of the `current_interval` is less than or equal to the end of the `last_interval`, they overlap. We merge them by updating the end of the `last_interval` to be the maximum of the two intervals' ends. If they don't overlap, we simply append the `current_interval` to our `output` list. This process continues until all intervals have been considered.",
+                    "explanation": "This problem can be solved with a greedy approach. The goal is to see if we can build the `target` triplet by taking the maximum of components from a selection of input triplets. The key insight is that any triplet `[a, b, c]` that has a value larger than its corresponding target value (e.g., `a > target[0]`) is completely useless, because the `max` operation will ensure that this oversized value persists, making it impossible to form the target. So, our first step is to filter out all such invalid triplets. After we have a pool of only valid triplets, we need to check if we can achieve the target. We can use a set or boolean flags to track which of the three target values we have successfully matched. We iterate through our pool of valid triplets. For each triplet, if its first component matches the target's first component, we mark the first position as 'found'. We do the same for the second and third components. After checking all valid triplets, if we have found a match for all three positions, it means we can form the target. Otherwise, it's impossible.",
                     "code": {
-                        "python": "class Solution:\n    def merge(self, intervals: list[list[int]]) -> list[list[int]]:\n        intervals.sort(key = lambda i : i[0])\n        output = [intervals[0]]\n\n        for start, end in intervals[1:]:\n            lastEnd = output[-1][1]\n\n            if start <= lastEnd:\n                output[-1][1] = max(lastEnd, end)\n            else:\n                output.append([start, end])\n        return output"
-                    }
-                }
-            },
-            {
-                "id": 435,
-                "title": "Non-overlapping Intervals",
-                "leetcode_url": "https://leetcode.com/problems/non-overlapping-intervals/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/non-overlapping-intervals"
-                },
-                "youtube_id": "nONCGxWoUfM",
-                "hints": [
-                    "This is a greedy problem.",
-                    "Sort the intervals by their end times. Then, iterate through the sorted intervals, keeping track of the end time of the last interval you kept. If the current interval doesn't overlap with the last one you kept, you can keep it too."
-                ],
-                "solution": {
-                    "explanation": "This problem can be solved with a greedy approach. The goal is to maximize the number of non-overlapping intervals, which is equivalent to minimizing the number of removals. The key greedy insight is to always keep the interval that finishes earliest. So, we first sort the intervals based on their end times. We initialize our count of removals to 0 and keep track of the end time of the last valid interval we've chosen, `prevEnd`. We iterate through the sorted intervals. For each interval, we check if its start time is greater than or equal to `prevEnd`. If it is, it means this interval does not overlap with the last one we kept, so we can keep it and update `prevEnd` to be this interval's end time. If it's not (i.e., it overlaps), we must remove it, so we increment our removal count.",
-                    "code": {
-                        "python": "class Solution:\n    def eraseOverlapIntervals(self, intervals: list[list[int]]) -> int:\n        intervals.sort()\n        \n        res = 0\n        prevEnd = intervals[0][1]\n        for start, end in intervals[1:]:\n            if start >= prevEnd:\n                prevEnd = end\n            else:\n                res += 1\n                prevEnd = min(end, prevEnd)\n        return res"
+                        "python": "class Solution:\n    def mergeTriplets(self, triplets: list[list[int]], target: list[int]) -> bool:\n        good = set()\n\n        for t in triplets:\n            if t[0] > target[0] or t[1] > target[1] or t[2] > target[2]:\n                continue\n            \n            for i in range(3):\n                if t[i] == target[i]:\n                    good.add(i)\n        \n        return len(good) == 3"
                     }
                 }
             },
@@ -2458,7 +2562,17 @@
                     "text": "NeetCode Solution",
                     "url": "https://neetcode.io/solutions/valid-parenthesis-string"
                 },
-                "youtube_id": "QhPdNS143fE"
+                "youtube_id": "QhPdNS143fE",
+                "hints": [
+                    "A greedy approach works well here. The '*' character is flexible.",
+                    "Instead of a single count for open parentheses, track the possible range of open parentheses (`min_open`, `max_open`). A '(' increases both, a ')' decreases both, and a '*' can increase, decrease, or do nothing."
+                ],
+                "solution": {
+                    "explanation": "A greedy approach can solve this in O(n) time. We can track the range of possible open parentheses counts. We use two variables: `leftMin` and `leftMax`. `leftMin` counts the minimum possible number of open parentheses, treating `*` as a closing parenthesis whenever possible. `leftMax` counts the maximum possible number of open parentheses, treating `*` as an opening parenthesis. We iterate through the string. For '(', we increment both. For ')', we decrement both. For '*', we decrement `leftMin` and increment `leftMax`. A crucial rule is that `leftMin` can never be negative, so we reset it to 0 if it drops. Also, if `leftMax` ever becomes negative, it means we have an unbalanced string with too many closing parentheses, so we can return `False` immediately. The final string is valid if and only if the final count of `leftMin` is 0.",
+                    "code": {
+                        "python": "class Solution:\n    def checkValidString(self, s: str) -> bool:\n        leftMin, leftMax = 0, 0\n\n        for c in s:\n            if c == \"(\":\n                leftMin, leftMax = leftMin + 1, leftMax + 1\n            elif c == \")\":\n                leftMin, leftMax = leftMin - 1, leftMax - 1\n            else:\n                leftMin, leftMax = leftMin - 1, leftMax + 1\n            if leftMax < 0:\n                return False\n            if leftMin < 0:\n                leftMin = 0\n        return leftMin == 0"
+                    }
+                }
             }
         ],
         "Intervals": [
@@ -2561,116 +2675,47 @@
                         "python": "import heapq\n\nclass Solution:\n    def minMeetingRooms(self, intervals: list[list[int]]) -> int:\n        start = sorted([i[0] for i in intervals])\n        end = sorted([i[1] for i in intervals])\n        res, count = 0, 0\n        s, e = 0, 0\n        while s < len(intervals):\n            if start[s] < end[e]:\n                s += 1\n                count += 1\n            else:\n                e += 1\n                count -= 1\n            res = max(res, count)\n        return res"
                     }
                 }
+            },
+            {
+                "id": 1851,
+                "title": "Minimum Interval to Include Each Query",
+                "leetcode_url": "https://leetcode.com/problems/minimum-interval-to-include-each-query/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/minimum-interval-to-include-each-query"
+                },
+                "youtube_id": "5h1n3v-a-c",
+                "hints": [
+                    "A brute-force approach for each query is too slow. A more efficient approach is needed.",
+                    "Sort both the `intervals` (by start time) and the `queries`. This allows you to process them in a coordinated, single pass.",
+                    "Use a min-heap to keep track of the intervals that are currently 'active' for a given query. An active interval is one that the query point falls into."
+                ],
+                "solution": {
+                    "explanation": "This problem can be solved efficiently by sorting both the intervals and the queries, and then using a min-heap. First, sort the `intervals` by their start time. Also, sort the `queries` but keep track of their original indices. We use a min-heap to store the `(size, end_time)` of intervals that are currently active. We iterate through the sorted queries. For each `query`, we first add all intervals that have started (i.e., `interval_start <= query`) into our min-heap. Next, we clean the min-heap by removing any intervals that have already ended (i.e., `interval_end < query`). After these steps, the top of the min-heap (if it's not empty) will contain the interval with the smallest size that covers the current query. We record this size as the answer for the current query. We continue this process for all queries and then return the results in their original order.",
+                    "code": {
+                        "python": "import heapq\n\nclass Solution:\n    def minInterval(self, intervals: list[list[int]], queries: list[int]) -> list[int]:\n        intervals.sort()\n\n        minHeap = []\n        res, i = {}, 0\n        for q in sorted(queries):\n            while i < len(intervals) and intervals[i][0] <= q:\n                l, r = intervals[i]\n                heapq.heappush(minHeap, (r - l + 1, r))\n                i += 1\n\n            while minHeap and minHeap[0][1] < q:\n                heapq.heappop(minHeap)\n            \n            res[q] = minHeap[0][0] if minHeap else -1\n        \n        return [res[q] for q in queries]"
+                    }
+                }
             }
         ],
         "Math & Geometry": [
             {
-                "id": 202,
-                "title": "Happy Number",
-                "leetcode_url": "https://leetcode.com/problems/happy-number/",
+                "id": 48,
+                "title": "Rotate Image",
+                "leetcode_url": "https://leetcode.com/problems/rotate-image/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/happy-number"
+                    "url": "https://neetcode.io/solutions/rotate-image"
                 },
-                "youtube_id": "ljz851i3vSs",
+                "youtube_id": "fMSJSS7eO1w",
                 "hints": [
-                    "The process of replacing a number with the sum of the squares of its digits can either eventually reach 1, or it will enter a cycle.",
-                    "You can detect a cycle by using a hash set to store the numbers you have already seen."
+                    "You must do this in-place.",
+                    "A 90-degree clockwise rotation is equivalent to first transposing the matrix and then reversing each row."
                 ],
                 "solution": {
-                    "explanation": "The key to this problem is detecting a cycle. If the process of summing the squares of digits goes on indefinitely without reaching 1, it must eventually repeat a number, at which point it has entered a cycle. We can detect this using a hash set. We start with the given number `n`. In a loop, we calculate the sum of the squares of its digits to get the next number. Before we repeat the process, we check if this new number is already in our hash set. If it is, we've found a cycle, and the number is not happy, so we return `False`. If not, we add the new number to the set and continue. The loop terminates and we return `True` if the number becomes 1.",
+                    "explanation": "Rotating an image 90 degrees clockwise in-place can be achieved with a two-step process. The first step is to transpose the matrix. Transposing means swapping the element at `matrix[i][j]` with the element at `matrix[j][i]`. We can do this with a nested loop, iterating through the upper or lower triangle of the matrix to perform the swaps. The second step is to reverse each row of the transposed matrix. We can iterate through each row and use a two-pointer approach (left and right pointers moving towards the center) to reverse the elements in that row. Performing these two operations in sequence results in a 90-degree clockwise rotation.",
                     "code": {
-                        "python": "class Solution:\n    def isHappy(self, n: int) -> bool:\n        visit = set()\n        while n not in visit:\n            visit.add(n)\n            n = self.sumOfSquares(n)\n            if n == 1:\n                return True\n        return False\n\n    def sumOfSquares(self, n: int) -> int:\n        output = 0\n        while n:\n            digit = n % 10\n            digit = digit ** 2\n            output += digit\n            n = n // 10\n        return output"
-                    }
-                }
-            },
-            {
-                "id": 69,
-                "title": "Sqrt(x)",
-                "leetcode_url": "https://leetcode.com/problems/sqrtx/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/sqrtx"
-                },
-                "youtube_id": "zd2_i-g_J2s"
-            },
-            {
-                "id": 50,
-                "title": "Pow(x, n)",
-                "leetcode_url": "https://leetcode.com/problems/powx-n/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/powx-n"
-                },
-                "youtube_id": "g9YQyYi4IQQ",
-                "hints": [
-                    "A naive solution of multiplying `x` by itself `n` times will be too slow.",
-                    "Use the 'exponentiation by squaring' method. `x^n` can be calculated as `(x^2)^(n/2)`. This suggests a recursive solution."
-                ],
-                "solution": {
-                    "explanation": "This can be solved efficiently using exponentiation by squaring, which has a logarithmic time complexity. The core idea is that `x^n` is `(x * x)^(n/2)`. We can implement this recursively. The base case is when `n` is 0, in which case the result is 1. In the recursive step, we calculate `res = myPow(x, n // 2)`. The result for `n` is then `res * res`. If `n` is odd, we have an extra factor of `x` to multiply, so the result is `x * res * res`. We also need to handle the case where `n` is negative; we can do this by calculating `myPow(1/x, -n)`.",
-                    "code": {
-                        "python": "class Solution:\n    def myPow(self, x: float, n: int) -> float:\n        def helper(x, n):\n            if x == 0: return 0\n            if n == 0: return 1\n\n            res = helper(x * x, n // 2)\n            return x * res if n % 2 else res\n        \n        res = helper(x, abs(n))\n        return res if n >= 0 else 1 / res"
-                    }
-                }
-            },
-            {
-                "id": 66,
-                "title": "Plus One",
-                "leetcode_url": "https://leetcode.com/problems/plus-one/",
-                "solution_link": {
-                    "text": "ProgramCreek Solution",
-                    "url": "https://www.programcreek.com/2014/05/leetcode-plus-one-java/"
-                },
-                "youtube_id": "jIaU2D2o_cM",
-                "hints": [
-                    "You need to simulate adding one to a number represented by an array of digits.",
-                    "Iterate through the digits from right to left. Handle the 'carry' operation."
-                ],
-                "solution": {
-                    "explanation": "We can solve this by simulating the addition process, starting from the least significant digit (the rightmost one). We iterate through the digits array from right to left. In each position, we add one. If the result is less than 10, we can simply update the digit and return the array, as no further carry is needed. If the digit becomes 10, we set it to 0 and continue the loop, effectively carrying a '1' to the next digit on the left. If we finish the loop and the leftmost digit was also turned to 0, it means we have a carry that needs a new digit place (e.g., 99 + 1 = 100). In this case, we insert a '1' at the beginning of the array.",
-                    "code": {
-                        "python": "class Solution:\n    def plusOne(self, digits: list[int]) -> list[int]:\n        n = len(digits)\n        \n        for i in range(n - 1, -1, -1):\n            if digits[i] < 9:\n                digits[i] += 1\n                return digits\n            digits[i] = 0\n            \n        # If we are here, it means all digits were 9s\n        new_number = [0] * (n + 1)\n        new_number[0] = 1\n        return new_number"
-                    }
-                }
-            },
-            {
-                "id": 43,
-                "title": "Multiply Strings",
-                "leetcode_url": "https://leetcode.com/problems/multiply-strings/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/multiply-strings"
-                },
-                "youtube_id": "1HPIH2yeC5w",
-                "hints": [
-                    "You cannot use built-in big integer libraries or convert the inputs to integers directly.",
-                    "Simulate the grade-school multiplication algorithm that you learned on paper."
-                ],
-                "solution": {
-                    "explanation": "This problem requires simulating manual multiplication. We can create a result array `res` of size `len(num1) + len(num2)`. We then iterate through `num1` and `num2` from right to left. For each pair of digits `d1` and `d2`, we multiply them and add the result to the appropriate position in our `res` array. The product `d1 * d2` will affect two positions in the result: `res[i+j+1]` (the 'ones' place) and `res[i+j]` (the 'tens' place, or carry). We must handle the carry-over from `res[i+j+1]` to `res[i+j]`. After filling the `res` array, it may have leading zeros, so we need to process it to form the final string representation of the number.",
-                    "code": {
-                        "python": "class Solution:\n    def multiply(self, num1: str, num2: str) -> str:\n        if \"0\" in [num1, num2]:\n            return \"0\"\n        \n        res = [0] * (len(num1) + len(num2))\n        num1, num2 = num1[::-1], num2[::-1]\n\n        for i1 in range(len(num1)):\n            for i2 in range(len(num2)):\n                digit = int(num1[i1]) * int(num2[i2])\n                res[i1 + i2] += digit\n                res[i1 + i2 + 1] += (res[i1 + i2] // 10)\n                res[i1 + i2] = res[i1 + i2] % 10\n\n        res, beg = res[::-1], 0\n        while beg < len(res) and res[beg] == 0:\n            beg += 1\n        \n        return \"\".join(map(str, res[beg:]))"
-                    }
-                }
-            },
-            {
-                "id": 73,
-                "title": "Set Matrix Zeroes",
-                "leetcode_url": "https://leetcode.com/problems/set-matrix-zeroes/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/set-matrix-zeroes"
-                },
-                "youtube_id": "T41rL0L3Pnw",
-                "hints": [
-                    "A naive solution would be to use O(m+n) extra space to record the rows and columns that need to be zeroed out.",
-                    "To achieve O(1) space, you can use the first row and first column of the matrix itself as markers."
-                ],
-                "solution": {
-                    "explanation": "To solve this in-place with O(1) extra space, we can use the first row and first column of the matrix as storage to mark which rows and columns need to be zeroed out. We first iterate through the matrix to determine if the original first row or first column themselves contain a zero, and we store this information in boolean variables. Then, we iterate through the rest of the matrix (from `[1,1]` onwards). If we find a `matrix[r][c] == 0`, we mark its corresponding position in the first row and first column by setting `matrix[0][c] = 0` and `matrix[r][0] = 0`. After this marking pass, we iterate through the matrix again (from `[1,1]` onwards) and set `matrix[r][c]` to zero if its marker in the first row or first column is zero. Finally, based on our initial boolean variables, we zero out the original first row and first column if needed.",
-                    "code": {
-                        "python": "class Solution:\n    def setZeroes(self, matrix: list[list[int]]) -> None:\n        # O(1) space\n        ROWS, COLS = len(matrix), len(matrix[0])\n        rowZero = False\n\n        # determine which rows/cols need to be zero\n        for r in range(ROWS):\n            for c in range(COLS):\n                if matrix[r][c] == 0:\n                    matrix[0][c] = 0\n                    if r > 0:\n                        matrix[r][0] = 0\n                    else:\n                        rowZero = True\n\n        for r in range(1, ROWS):\n            for c in range(1, COLS):\n                if matrix[0][c] == 0 or matrix[r][0] == 0:\n                    matrix[r][c] = 0\n        \n        if matrix[0][0] == 0:\n            for r in range(ROWS):\n                matrix[r][0] = 0\n\n        if rowZero:\n            for c in range(COLS):\n                matrix[0][c] = 0"
+                        "python": "class Solution:\n    def rotate(self, matrix: list[list[int]]) -> None:\n        l, r = 0, len(matrix) - 1\n\n        while l < r:\n            for i in range(r - l):\n                top, bottom = l, r\n\n                # save the topleft\n                topLeft = matrix[top][l + i]\n\n                # move bottom left into top left\n                matrix[top][l + i] = matrix[bottom - i][l]\n\n                # move bottom right into bottom left\n                matrix[bottom - i][l] = matrix[bottom][r - i]\n\n                # move top right into bottom right\n                matrix[bottom][r - i] = matrix[top + i][r]\n\n                # move top left into top right\n                matrix[top + i][r] = topLeft\n            r -= 1\n            l += 1"
                     }
                 }
             },
@@ -2695,22 +2740,102 @@
                 }
             },
             {
-                "id": 48,
-                "title": "Rotate Image",
-                "leetcode_url": "https://leetcode.com/problems/rotate-image/",
+                "id": 73,
+                "title": "Set Matrix Zeroes",
+                "leetcode_url": "https://leetcode.com/problems/set-matrix-zeroes/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/rotate-image"
+                    "url": "https://neetcode.io/solutions/set-matrix-zeroes"
                 },
-                "youtube_id": "fMSJSS7eO1w",
+                "youtube_id": "T41rL0L3Pnw",
                 "hints": [
-                    "You must do this in-place.",
-                    "A 90-degree clockwise rotation is equivalent to first transposing the matrix and then reversing each row."
+                    "A naive solution would be to use O(m+n) extra space to record the rows and columns that need to be zeroed out.",
+                    "To achieve O(1) space, you can use the first row and first column of the matrix itself as markers."
                 ],
                 "solution": {
-                    "explanation": "Rotating an image 90 degrees clockwise in-place can be achieved with a two-step process. The first step is to transpose the matrix. Transposing means swapping the element at `matrix[i][j]` with the element at `matrix[j][i]`. We can do this with a nested loop, iterating through the upper or lower triangle of the matrix to perform the swaps. The second step is to reverse each row of the transposed matrix. We can iterate through each row and use a two-pointer approach (left and right pointers moving towards the center) to reverse the elements in that row. Performing these two operations in sequence results in a 90-degree clockwise rotation.",
+                    "explanation": "To solve this in-place with O(1) extra space, we can use the first row and first column of the matrix as storage to mark which rows and columns need to be zeroed out. We first iterate through the matrix to determine if the original first row or first column themselves contain a zero, and we store this information in boolean variables. Then, we iterate through the rest of the matrix (from `[1,1]` onwards). If we find a `matrix[r][c] == 0`, we mark its corresponding position in the first row and first column by setting `matrix[0][c] = 0` and `matrix[r][0] = 0`. After this marking pass, we iterate through the matrix again (from `[1,1]` onwards) and set `matrix[r][c]` to zero if its marker in the first row or first column is zero. Finally, based on our initial boolean variables, we zero out the original first row and first column if needed.",
                     "code": {
-                        "python": "class Solution:\n    def rotate(self, matrix: list[list[int]]) -> None:\n        l, r = 0, len(matrix) - 1\n\n        while l < r:\n            for i in range(r - l):\n                top, bottom = l, r\n\n                # save the topleft\n                topLeft = matrix[top][l + i]\n\n                # move bottom left into top left\n                matrix[top][l + i] = matrix[bottom - i][l]\n\n                # move bottom right into bottom left\n                matrix[bottom - i][l] = matrix[bottom][r - i]\n\n                # move top right into bottom right\n                matrix[bottom][r - i] = matrix[top + i][r]\n\n                # move top left into top right\n                matrix[top + i][r] = topLeft\n            r -= 1\n            l += 1"
+                        "python": "class Solution:\n    def setZeroes(self, matrix: list[list[int]]) -> None:\n        # O(1) space\n        ROWS, COLS = len(matrix), len(matrix[0])\n        rowZero = False\n\n        # determine which rows/cols need to be zero\n        for r in range(ROWS):\n            for c in range(COLS):\n                if matrix[r][c] == 0:\n                    matrix[0][c] = 0\n                    if r > 0:\n                        matrix[r][0] = 0\n                    else:\n                        rowZero = True\n\n        for r in range(1, ROWS):\n            for c in range(1, COLS):\n                if matrix[0][c] == 0 or matrix[r][0] == 0:\n                    matrix[r][c] = 0\n        \n        if matrix[0][0] == 0:\n            for r in range(ROWS):\n                matrix[r][0] = 0\n\n        if rowZero:\n            for c in range(COLS):\n                matrix[0][c] = 0"
+                    }
+                }
+            },
+            {
+                "id": 202,
+                "title": "Happy Number",
+                "leetcode_url": "https://leetcode.com/problems/happy-number/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/happy-number"
+                },
+                "youtube_id": "ljz851i3vSs",
+                "hints": [
+                    "The process of replacing a number with the sum of the squares of its digits can either eventually reach 1, or it will enter a cycle.",
+                    "You can detect a cycle by using a hash set to store the numbers you have already seen."
+                ],
+                "solution": {
+                    "explanation": "The key to this problem is detecting a cycle. If the process of summing the squares of digits goes on indefinitely without reaching 1, it must eventually repeat a number, at which point it has entered a cycle. We can detect this using a hash set. We start with the given number `n`. In a loop, we calculate the sum of the squares of its digits to get the next number. Before we repeat the process, we check if this new number is already in our hash set. If it is, we've found a cycle, and the number is not happy, so we return `False`. If not, we add the new number to the set and continue. The loop terminates and we return `True` if the number becomes 1.",
+                    "code": {
+                        "python": "class Solution:\n    def isHappy(self, n: int) -> bool:\n        visit = set()\n        while n not in visit:\n            visit.add(n)\n            n = self.sumOfSquares(n)\n            if n == 1:\n                return True\n        return False\n\n    def sumOfSquares(self, n: int) -> int:\n        output = 0\n        while n:\n            digit = n % 10\n            digit = digit ** 2\n            output += digit\n            n = n // 10\n        return output"
+                    }
+                }
+            },
+            {
+                "id": 66,
+                "title": "Plus One",
+                "leetcode_url": "https://leetcode.com/problems/plus-one/",
+                "solution_link": {
+                    "text": "ProgramCreek Solution",
+                    "url": "https://www.programcreek.com/2014/05/leetcode-plus-one-java/"
+                },
+                "youtube_id": "jIaU2D2o_cM",
+                "hints": [
+                    "You need to simulate adding one to a number represented by an array of digits.",
+                    "Iterate through the digits from right to left. Handle the 'carry' operation."
+                ],
+                "solution": {
+                    "explanation": "We can solve this by simulating the addition process, starting from the least significant digit (the rightmost one). We iterate through the digits array from right to left. In each position, we add one. If the result is less than 10, we can simply update the digit and return the array, as no further carry is needed. If the digit becomes 10, we set it to 0 and continue the loop, effectively carrying a '1' to the next digit on the left. If we finish the loop and the leftmost digit was also turned to 0, it means we have a carry that needs a new digit place (e.g., 99 + 1 = 100). In this case, we insert a '1' at the beginning of the array.",
+                    "code": {
+                        "python": "class Solution:\n    def plusOne(self, digits: list[int]) -> list[int]:\n        n = len(digits)\n        \n        for i in range(n - 1, -1, -1):\n            if digits[i] < 9:\n                digits[i] += 1\n                return digits\n            digits[i] = 0\n            \n        # If we are here, it means all digits were 9s\n        new_number = [0] * (n + 1)\n        new_number[0] = 1\n        return new_number"
+                    }
+                }
+            },
+            {
+                "id": 50,
+                "title": "Pow(x, n)",
+                "leetcode_url": "https://leetcode.com/problems/powx-n/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/powx-n"
+                },
+                "youtube_id": "g9YQyYi4IQQ",
+                "hints": [
+                    "A naive solution of multiplying `x` by itself `n` times will be too slow.",
+                    "Use the 'exponentiation by squaring' method. `x^n` can be calculated as `(x^2)^(n/2)`. This suggests a recursive solution."
+                ],
+                "solution": {
+                    "explanation": "This can be solved efficiently using exponentiation by squaring, which has a logarithmic time complexity. The core idea is that `x^n` is `(x * x)^(n/2)`. We can implement this recursively. The base case is when `n` is 0, in which case the result is 1. In the recursive step, we calculate `res = myPow(x, n // 2)`. The result for `n` is then `res * res`. If `n` is odd, we have an extra factor of `x` to multiply, so the result is `x * res * res`. We also need to handle the case where `n` is negative; we can do this by calculating `myPow(1/x, -n)`.",
+                    "code": {
+                        "python": "class Solution:\n    def myPow(self, x: float, n: int) -> float:\n        def helper(x, n):\n            if x == 0: return 0\n            if n == 0: return 1\n\n            res = helper(x * x, n // 2)\n            return x * res if n % 2 else res\n        \n        res = helper(x, abs(n))\n        return res if n >= 0 else 1 / res"
+                    }
+                }
+            },
+            {
+                "id": 43,
+                "title": "Multiply Strings",
+                "leetcode_url": "https://leetcode.com/problems/multiply-strings/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/multiply-strings"
+                },
+                "youtube_id": "1HPIH2yeC5w",
+                "hints": [
+                    "You cannot use built-in big integer libraries or convert the inputs to integers directly.",
+                    "Simulate the grade-school multiplication algorithm that you learned on paper."
+                ],
+                "solution": {
+                    "explanation": "This problem requires simulating manual multiplication. We can create a result array `res` of size `len(num1) + len(num2)`. We then iterate through `num1` and `num2` from right to left. For each pair of digits `d1` and `d2`, we multiply them and add the result to the appropriate position in our `res` array. The product `d1 * d2` will affect two positions in the result: `res[i+j+1]` (the 'ones' place) and `res[i+j]` (the 'tens' place, or carry). We must handle the carry-over from `res[i+j+1]` to `res[i+j]`. After filling the `res` array, it may have leading zeros, so we need to process it to form the final string representation of the number.",
+                    "code": {
+                        "python": "class Solution:\n    def multiply(self, num1: str, num2: str) -> str:\n        if \"0\" in [num1, num2]:\n            return \"0\"\n        \n        res = [0] * (len(num1) + len(num2))\n        num1, num2 = num1[::-1], num2[::-1]\n\n        for i1 in range(len(num1)):\n            for i2 in range(len(num2)):\n                digit = int(num1[i1]) * int(num2[i2])\n                res[i1 + i2] += digit\n                res[i1 + i2 + 1] += (res[i1 + i2] // 10)\n                res[i1 + i2] = res[i1 + i2] % 10\n\n        res, beg = res[::-1], 0\n        while beg < len(res) and res[beg] == 0:\n            beg += 1\n        \n        return \"\".join(map(str, res[beg:]))"
                     }
                 }
             },
@@ -2727,22 +2852,23 @@
         ],
         "Bit Manipulation": [
             {
-                "id": 268,
-                "title": "Missing Number",
-                "leetcode_url": "https://leetcode.com/problems/missing-number/",
+                "id": 136,
+                "title": "Single Number",
+                "leetcode_url": "https://leetcode.com/problems/single-number/",
                 "solution_link": {
                     "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/missing-number"
+                    "url": "https://neetcode.io/solutions/single-number"
                 },
-                "youtube_id": "WnPLSRLSANE",
+                "youtube_id": "_0k-9D54_O4",
                 "hints": [
-                    "The sum of numbers from 0 to `n` can be calculated with Gauss' formula. You can find the expected sum and subtract the actual sum of the input array.",
-                    "A clever bit manipulation approach uses the XOR operator. `a ^ b ^ b = a`."
+                    "A simple solution uses a hash map to count the frequency of each number, but this requires O(n) extra space.",
+                    "To achieve a solution with O(1) extra space, you should think about bit manipulation.",
+                    "Consider the properties of the XOR operator: `a ^ a = 0` and `a ^ 0 = a`. What happens if you XOR all the numbers in the array together?"
                 ],
                 "solution": {
-                    "explanation": "A very elegant solution uses the XOR bitwise operator. The XOR operator has the property that `x ^ x = 0` and `x ^ 0 = x`. We can initialize a result variable to `len(nums)` (which is the value of `n`). Then, we iterate from `i = 0` to `len(nums) - 1`, and in each iteration, we XOR our result with both the index `i` and the value `nums[i]`. The idea is that we are XORing all the numbers in the complete range `[0, n]` and all the numbers in the given array `nums`. Since every number except the missing one appears twice (once as an index, once as a value), their effects will cancel out, leaving only the missing number.",
+                    "explanation": "This problem has a beautiful and highly efficient solution using the XOR bitwise operator. The key property of XOR is that it is commutative and associative, and a number XORed with itself results in zero (`a ^ a = 0`). This means that if we XOR all the numbers in the input array, every number that appears twice will cancel itself out, leaving only the number that appears once. The algorithm is to initialize a result variable to 0, and then iterate through the `nums` array, XORing the result variable with each number. The final value of the result variable will be the single number that appears only once. This approach has a linear time complexity O(n) and constant extra space O(1).",
                     "code": {
-                        "python": "class Solution:\n    def missingNumber(self, nums: list[int]) -> int:\n        res = len(nums)\n\n        for i in range(len(nums)):\n            res += (i - nums[i])\n        return res"
+                        "python": "class Solution:\n    def singleNumber(self, nums: list[int]) -> int:\n        res = 0\n        for n in nums:\n            res = n ^ res\n        return res"
                     }
                 }
             },
@@ -2787,26 +2913,6 @@
                 }
             },
             {
-                "id": 371,
-                "title": "Sum of Two Integers",
-                "leetcode_url": "https://leetcode.com/problems/sum-of-two-integers/",
-                "solution_link": {
-                    "text": "NeetCode Solution",
-                    "url": "https://neetcode.io/solutions/sum-of-two-integers"
-                },
-                "youtube_id": "gV-3O1EEg48",
-                "hints": [
-                    "You cannot use the `+` or `-` operators. You must use bitwise operators.",
-                    "The sum can be broken into two parts: the sum without carrying (which is XOR), and the carry bits (which is AND, left-shifted)."
-                ],
-                "solution": {
-                    "explanation": "This problem requires simulating addition using bitwise operations. Addition can be thought of in two parts: the sum of bits where at least one is 0 (which is the XOR operation), and the carry bits generated when both bits are 1 (which is the AND operation, shifted one position to the left). We can perform this in a loop. In each iteration, we calculate `sum_without_carry = a ^ b` and `carry = (a & b) << 1`. We then update `a` to be the `sum_without_carry` and `b` to be the `carry`. We repeat this loop until the `carry` (`b`) becomes 0. At that point, `a` will hold the final sum. Handling negative numbers in Python requires masking with `0xffffffff` to simulate 32-bit integers.",
-                    "code": {
-                        "python": "class Solution:\n    def getSum(self, a: int, b: int) -> int:\n        mask = 0xffffffff\n        \n        while (b & mask) > 0:\n            carry = (a & b) << 1\n            a = a ^ b\n            b = carry\n            \n        return (a & mask) if b > 0 else a"
-                    }
-                }
-            },
-            {
                 "id": 190,
                 "title": "Reverse Bits",
                 "leetcode_url": "https://leetcode.com/problems/reverse-bits/",
@@ -2823,6 +2929,46 @@
                     "explanation": "To reverse the bits, we can process the input number `n` one bit at a time for 32 iterations. We initialize our result `res` to 0. In each iteration, we first left shift our result (`res << 1`) to make space for the next bit. Then, we take the least significant bit of `n` by doing `n & 1`. We add this bit to our result using a bitwise OR. Finally, we right shift `n` (`n >> 1`) to process its next bit in the following iteration. After 32 loops, `res` will hold the bit-reversed integer.",
                     "code": {
                         "python": "class Solution:\n    def reverseBits(self, n: int) -> int:\n        res = 0\n\n        for i in range(32):\n            bit = (n >> i) & 1\n            res = res | (bit << (31 - i))\n        return res"
+                    }
+                }
+            },
+            {
+                "id": 268,
+                "title": "Missing Number",
+                "leetcode_url": "https://leetcode.com/problems/missing-number/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/missing-number"
+                },
+                "youtube_id": "WnPLSRLSANE",
+                "hints": [
+                    "The sum of numbers from 0 to `n` can be calculated with Gauss' formula. You can find the expected sum and subtract the actual sum of the input array.",
+                    "A clever bit manipulation approach uses the XOR operator. `a ^ b ^ b = a`."
+                ],
+                "solution": {
+                    "explanation": "A very elegant solution uses the XOR bitwise operator. The XOR operator has the property that `x ^ x = 0` and `x ^ 0 = x`. We can initialize a result variable to `len(nums)` (which is the value of `n`). Then, we iterate from `i = 0` to `len(nums) - 1`, and in each iteration, we XOR our result with both the index `i` and the value `nums[i]`. The idea is that we are XORing all the numbers in the complete range `[0, n]` and all the numbers in the given array `nums`. Since every number except the missing one appears twice (once as an index, once as a value), their effects will cancel out, leaving only the missing number.",
+                    "code": {
+                        "python": "class Solution:\n    def missingNumber(self, nums: list[int]) -> int:\n        res = len(nums)\n\n        for i in range(len(nums)):\n            res += (i - nums[i])\n        return res"
+                    }
+                }
+            },
+            {
+                "id": 371,
+                "title": "Sum of Two Integers",
+                "leetcode_url": "https://leetcode.com/problems/sum-of-two-integers/",
+                "solution_link": {
+                    "text": "NeetCode Solution",
+                    "url": "https://neetcode.io/solutions/sum-of-two-integers"
+                },
+                "youtube_id": "gV-3O1EEg48",
+                "hints": [
+                    "You cannot use the `+` or `-` operators. You must use bitwise operators.",
+                    "The sum can be broken into two parts: the sum without carrying (which is XOR), and the carry bits (which is AND, left-shifted)."
+                ],
+                "solution": {
+                    "explanation": "This problem requires simulating addition using bitwise operations. Addition can be thought of in two parts: the sum of bits where at least one is 0 (which is the XOR operation), and the carry bits generated when both bits are 1 (which is the AND operation, shifted one position to the left). We can perform this in a loop. In each iteration, we calculate `sum_without_carry = a ^ b` and `carry = (a & b) << 1`. We then update `a` to be the `sum_without_carry` and `b` to be the `carry`. We repeat this loop until the `carry` (`b`) becomes 0. At that point, `a` will hold the final sum. Handling negative numbers in Python requires masking with `0xffffffff` to simulate 32-bit integers.",
+                    "code": {
+                        "python": "class Solution:\n    def getSum(self, a: int, b: int) -> int:\n        mask = 0xffffffff\n        \n        while (b & mask) > 0:\n            carry = (a & b) << 1\n            a = a ^ b\n            b = carry\n            \n        return (a & mask) if b > 0 else a"
                     }
                 }
             },

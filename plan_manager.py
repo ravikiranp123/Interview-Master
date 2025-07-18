@@ -205,7 +205,7 @@ def init():
 
 @cli.command()
 def plan():
-    """Generates the daily plan, including a rating legend."""
+    """Generates a focused daily plan by prioritizing all overdue and current tasks."""
     state = load_state()
     if not state:
         click.echo(click.style("No plan initialized. Run 'init' first.", fg="red"))
@@ -219,28 +219,40 @@ def plan():
         os.remove(f)
     click.echo(f"Cleaned workspace: '{WORKSPACE_DIR}'")
 
+    # --- New Unified Task Logic ---
     all_pending = [p for p in state["problems"] if p["status"] == "pending"]
     all_completed = [p for p in state["problems"] if p["status"] == "completed"]
 
-    overdue_tasks = [(p, 'new') for p in all_pending if p["scheduled_date"] < today]
-    overdue_repetitions = [(p, 'rep') for p in all_completed if p.get("next_repetition_date") and p["next_repetition_date"] < today]
+    new_tasks_due = [(p, 'new') for p in all_pending if p["scheduled_date"] <= today]
+    repetitions_due = [(p, 'rep') for p in all_completed if p.get("next_repetition_date") and p["next_repetition_date"] <= today]
     
-    all_overdue_items = overdue_tasks + overdue_repetitions
-    def get_due_date(item):
+    all_due_items = new_tasks_due + repetitions_due
+
+    def get_priority_key(item):
         problem, item_type = item
-        return problem['scheduled_date'] if item_type == 'new' else problem['next_repetition_date']
-    all_overdue_items.sort(key=get_due_date)
+        # Priority 1: Was the last rating a "4" (Again)?
+        is_high_priority = False
+        if problem["completion_history"]:
+            last_rating = problem["completion_history"][-1].get("rating")
+            if last_rating == 4:
+                is_high_priority = True
+        
+        # Priority 2: The actual due date
+        due_date = problem['scheduled_date'] if item_type == 'new' else problem['next_repetition_date']
+        
+        # Sort key: High-priority items first (0), then by date.
+        return (0 if is_high_priority else 1, due_date)
 
-    new_tasks_today = [p for p in all_pending if p["scheduled_date"] == today]
-    reps_due_today = [p for p in all_completed if p.get("next_repetition_date") == today]
-    overdue_to_solve = []
-
-    if all_overdue_items:
-        click.echo(click.style(f"You have {len(all_overdue_items)} overdue items.", fg="yellow"))
-        focus_count = click.prompt(f"How many of the oldest ones would you like to focus on today?", type=click.IntRange(0, len(all_overdue_items)), default=min(2, len(all_overdue_items)))
+    all_due_items.sort(key=get_priority_key)
+    
+    tasks_for_plan = []
+    if all_due_items:
+        click.echo(click.style(f"You have {len(all_due_items)} total tasks due (overdue and for today).", fg="yellow"))
+        focus_count = click.prompt(f"How many would you like to focus on?", type=click.IntRange(0, len(all_due_items)), default=min(5, len(all_due_items)))
         if focus_count > 0:
-            overdue_to_solve = all_overdue_items[:focus_count]
-
+            tasks_for_plan = all_due_items[:focus_count]
+    # --- End of New Logic ---
+    
     content = [f"# LeetCode Plan for: {today}\n"]
     
     rating_legend = [
@@ -253,13 +265,10 @@ def plan():
     ]
     content.extend(rating_legend)
     
-    def generate_problem_markdown(task, level, is_overdue=False, is_rep=False):
+    def generate_problem_markdown(task, level, is_rep):
         lines = []
-        note = ""
-        if is_overdue:
-            due_date = task.get('next_repetition_date') if is_rep else task.get('scheduled_date')
-            note = f" (Overdue from {due_date})"
-        lines.append(f"-   [ ] {task['id']}\\. {task['title']} {note}")
+        note = " (Repetition)" if is_rep else ""
+        lines.append(f"-   [ ] {task['id']}\\. {task['title']} ({task['category']}){note}")
         lines.append("    *   **Rating (0-4)**: ")
         lines.append("    *   **Notes**: ")
         lines.append("    *   **Time Taken (Manual)**: ")
@@ -305,22 +314,11 @@ def plan():
             lines.extend(resource_blocks)
         return "\n".join(lines)
 
-    if new_tasks_today:
-        content.append("---\n\n## 🚀 New Problems To Solve\n")
-        for task in new_tasks_today:
-            content.append(generate_problem_markdown(task, rich_content_level))
-
-    if overdue_to_solve:
-        content.append("---\n\n## 🔥 Overdue Focus\n")
-        for item, item_type in overdue_to_solve:
-            content.append(generate_problem_markdown(item, rich_content_level, is_overdue=True, is_rep=(item_type=='rep')))
-
-    if reps_due_today:
-        content.append("\n---\n\n## 🔁 Repetitions Due Today\n")
-        for task in reps_due_today:
-            content.append(generate_problem_markdown(task, rich_content_level))
-    
-    if not new_tasks_today and not overdue_to_solve and not reps_due_today:
+    if tasks_for_plan:
+        content.append("---\n\n## 🎯 Today's Focus\n")
+        for task, item_type in tasks_for_plan:
+            content.append(generate_problem_markdown(task, rich_content_level, is_rep=(item_type=='rep')))
+    else:
         content.append("\n*Nothing scheduled for today. Use `add` to practice more or `rebalance` to adjust your schedule.*")
         
     with open(plan_file_path, "w", encoding="utf-8") as f:
